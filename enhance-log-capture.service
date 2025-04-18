@@ -1,0 +1,11 @@
+[Unit]
+Description=Enhance Log Archiver
+After=network.target
+
+[Service]
+ExecStart=/root/bin/enhance-log-capture/enhance-log-capture.sh
+Restart=always
+User=root
+
+[Install]
+WantedBy=multi-user.target
