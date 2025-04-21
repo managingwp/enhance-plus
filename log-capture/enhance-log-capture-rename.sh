@@ -22,8 +22,8 @@ fi
 # This should be your mapping from UUID → domain
 # Ideally load from a file or a DB in production
 
-# -- File Format is d8568b84-f024-468a-9d73-4b3f0abc8bb6.log-20231001.gz
-LOG_FILES=($(\ls "$ACTIVE_DIR"/*.log.gz 2>/dev/null))
+# -- File Format is /var/log/webserver_logs/ff5a1958-0e43-4584-8de8-466a24542582.log-20250421
+LOG_FILES=($(\ls "$ACTIVE_DIR"/*.log-* 2>/dev/null))
 # -- Count logfiles to process into variable
 LOG_FILE_COUNT=${#LOG_FILES[@]}
 if [ $LOG_FILE_COUNT -eq 0 ]; then
@@ -37,12 +37,11 @@ if [ ! -d "$ARCHIVE_DIR" ]; then
 fi
 echo "Processing $LOG_FILE_COUNT log files in $ACTIVE_DIR to be renamed and moved to $ARCHIVE_DIR"
 for FILE in "${LOG_FILES[@]}"; do
-    # Example file name 051f4c48-f47f-4374-b9ea-ccd44e76e6ff_20250417.log.gz
+    # Example file name /var/log/webserver_logs/ff5a1958-0e43-4584-8de8-466a24542582.log-20250421
     FILENAME=$(basename "$FILE")
-    # strip _date.log.gz
-    UUID=$(echo "$FILENAME" | cut -d_ -f1)  # strip .log.gz
-    DATE_PART=$(echo "$FILENAME" | cut -d_ -f2 | cut -d. -f1) # strip .log.gz
-    echo "== Processing file: $FILE - FILENAME: $FILENAME - UUID: $UUID - DATE_PART: $DATE_PART"
+    # Extract UUID and date part
+    UUID=${FILENAME%%.log-*}
+    DATE_PART=${FILENAME##*.log-}
 
     # -- Get the domain from enhance-cli
     echo "Getting domain for UUID: $UUID"
@@ -51,19 +50,33 @@ for FILE in "${LOG_FILES[@]}"; do
         echo "Error: enhance-cli get-domain failed for UUID:$UUID"
         continue
     fi
-    # -- Rename the file
-    NEW_FILENAME="${DOMAIN}_${DATE_PART}.log.gz"
-    if [ -e "$NEW_FILE_PATH" ]; then
-        _echo "Filename $NEW_FILE_PATH already exists, adding a timestamp"
-        TIMESTAMP=$(date +%Y%m%d%H%M%S)
-        NEW_FILENAME="${DOMAIN}_${DATE_PART}_${TIMESTAMP}.log.gz"        
+
+    if [[ -z "$DOMAIN" ]]; then
+        DOMAIN="$UUID-broken"
     fi
+    
+    # -- Construct new filename with domain instead of UUID
+    NEW_FILENAME="${DOMAIN}.log-${DATE_PART}"
     NEW_FILE_PATH="$ARCHIVE_DIR/$NEW_FILENAME"
+    
+    # -- Handle duplicate filenames
+    if [ -e "$NEW_FILE_PATH" ]; then
+        echo "Filename $NEW_FILE_PATH already exists, adding a number to the end"
+        # Add a number to the end of the filename if it already exists
+        i=1
+        while [ -e "$NEW_FILE_PATH" ]; do
+            NEW_FILENAME="${DOMAIN}.log-${DATE_PART}-$i"
+            NEW_FILE_PATH="$ARCHIVE_DIR/$NEW_FILENAME"
+            ((i++))
+        done
+    fi
+    
+    # -- Move/rename the file
     [[ $DRY_RUN == 1 ]] && echo "Would move $FILE to $NEW_FILE_PATH" || mv "$FILE" "$NEW_FILE_PATH"
     if [ $? -ne 0 ]; then
         echo "Error: Failed to rename $FILE to $NEW_FILE_PATH"
         continue
     fi
-    echo "Renamed $FILE to $NEW_FILE_PATH"    
-    echo "======================================="    
+    echo "Renamed $FILE to $NEW_FILE_PATH"
+    echo "======================================="
 done
