@@ -5,8 +5,8 @@ This repository is a collection of scripts and tools to help manage the enhance 
 This is an example install. You will want to be logged in as root.
 | Branch | One Liner|
 |--------|----------|
-| main   | `curl -s https://raw.githubusercontent.com/enhance-plus/enhance-plus/main/install.sh | bash` |
-| dev    | `curl -s https://raw.githubusercontent.com/enhance-plus/enhance-plus/dev/install.sh | bash` |
+| main   | `curl -s https://raw.githubusercontent.com/managingwp/enhance-plus/refs/heads/main/install.sh | bash` |
+| dev    | `curl -s https://raw.githubusercontent.com/managingwp/enhance-plus/refs/heads/dev/install.sh | bash` |
 
 # log-capture
 Retain and rotate web server log files on the enhance platform. Why? If a site is attacked or there is a sudden change in resource usage, the web server logs can be invaluable in diagnosing the issue.
