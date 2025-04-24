@@ -4,8 +4,10 @@ SCRIPT_PATH=$(dirname "$(readlink -f "$0")")
 CMD="$1"
 FORCE=0
 
-_running () { echo -e "\e[1;34m${*}\e[0m"; }
-_running2 () { echo -e "\e[1;30m-- ${*}\e[0m"; }
+# Yellow background black text
+_running () { echo -e "\e[1;33m${*}\e[0m"; }
+_running2 () { echo -e "\e[1;34m${*}\e[0m"; }
+_running3 () { echo -e "\e[1;30m${*}\e[0m"; }
 _success () { echo -e "\e[1;32m${*}\e[0m"; }
 _error () { echo -e "\e[1;31m${*}\e[0m"; }
 
@@ -26,19 +28,29 @@ _usage() {
 }
 
 _install_service () {
+    _running3 "Installing systemd service $SYSTEMD_FILE at $SYSTEMD_FILE_PATH"
     cp "${SCRIPT_PATH}/$SYSTEMD_FILE" "$SYSTEMD_FILE_PATH"
-    sudo systemctl daemon-reexec
-    sudo systemctl enable --now $SYSTEMD_FILE
+    _running3 "Running: systemctl daemon-reload"
+    systemctl daemon-reexec
+    _running3 "Running: systemctl enable --now $SYSTEMD_FILE"
+     systemctl enable --now $SYSTEMD_FILE
+    _running3 "Running: systemctl start $SYSTEMD_FILE"
     sudo systemctl start $SYSTEMD_FILE
+    [[ $? -ne 0 ]] && _error "Failed to start $SYSTEMD_FILE" && exit 1
 }
 _uninstall_service() {
-    sudo systemctl stop enhance-log-capture.service
-    sudo systemctl disable enhance-log-capture.service
-    sudo rm -f $SYSTEMD_FILE_PATH
+    _running3 "Uninstalling systemd service $SYSTEMD_FILE at $SYSTEMD_FILE_PATH"
+    systemctl stop enhance-log-capture.service
+    _running3 "Running: systemctl daemon-reload"
+    systemctl disable enhance-log-capture.service
+    _running3 "Running: rm -f $SYSTEMD_FILE_PATH"
+    rm -f $SYSTEMD_FILE_PATH
 }
 
 _install_logrotate() {
+    _running3 "Installing logrotate configuration $LOGROTATE_FILE at $LOGROTATE_FILE_PATH"    
     cp "${SCRIPT_PATH}/$LOGROTATE_FILE" "$LOGROTATE_FILE_PATH"
+    _running3 "Running: chmod 644 $LOGROTATE_FILE_PATH"
     sudo chmod 644 $LOGROTATE_FILE_PATH
 }
 
@@ -127,7 +139,6 @@ if [[ $CMD == "install" ]]; then
             _running2 "File $LOGROTATE_FILE_PATH exists, and the hash matches, skipping to next step"
         fi
     fi
-
     _success "* Installation complete *"
 # -- Uninstall
 elif [[ $CMD == "uninstall" ]]; then
