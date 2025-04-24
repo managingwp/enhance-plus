@@ -12,7 +12,7 @@
     ifempty
     sharedscripts
     postrotate
-        /root/bin/enhance-log-capture/enhance-log-capture-rename.sh rename
+        /usr/local/sbin/enhance-plus/enhance-log-capture/enhance-log-capture-rename.sh rename
     endscript
 }
 
