@@ -7,6 +7,7 @@ FORCE=0
 _running () { echo -e "\e[1;34m${*}\e[0m"; }
 _running2 () { echo -e "\e[1;30m-- ${*}\e[0m"; }
 _success () { echo -e "\e[1;32m${*}\e[0m"; }
+_warning () { echo -e "\e[1;33m${*}\e[0m"; }
 _error () { echo -e "\e[1;31m${*}\e[0m"; }
 
 _usage() {
@@ -45,8 +46,8 @@ _install_logrotate() {
 _pre-flight () {
     # -- Check if inotifywait is installed
     if ! command -v inotifywait &> /dev/null; then
-        _error "inotifywait could not be found, please install inotify-tools"
-        _loading2 "Installing inotify-tools"
+        _warning "inotifywait could not be found, trying to install inotify-tools"
+        _running2 "Installing inotify-tools"
         sudo apt-get install -y inotify-tools
         if [[ $? -ne 0 ]]; then
             _error "Failed to install inotify-tools"
