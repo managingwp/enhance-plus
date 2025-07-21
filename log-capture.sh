@@ -131,6 +131,21 @@ if [[ $CMD == "install" ]]; then
     fi
 
     _success "* Installation complete *"
+    echo
+    _running "Service Management Commands:"
+    _running2 "Check service status: sudo systemctl status enhance-log-capture.service"
+    _running2 "View service logs: sudo journalctl -u enhance-log-capture.service -f"
+    _running2 "Check if service is running: sudo systemctl is-active enhance-log-capture.service"
+    echo
+    _running "Log File Locations:"
+    _running2 "Source logs (monitored): /var/local/enhance/webserver_logs/"
+    _running2 "Archive logs (copied to): /var/log/webserver_logs/"
+    _running2 "Rotated logs (compressed): /var/log/webserver_logs_archive/"
+    echo
+    _running "Test the service:"
+    _running2 "echo \"Test log entry \$(date)\" >> /var/local/enhance/webserver_logs/test.log"
+    _running2 "cat /var/log/webserver_logs/test.log"
+    echo
 # -- Uninstall
 elif [[ $CMD == "uninstall" ]]; then
     _running "Uninstalling $SYSTEMD_FILE at $SYSTEMD_FILE_PATH"
