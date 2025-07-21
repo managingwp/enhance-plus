@@ -27,9 +27,12 @@ _usage() {
 }
 
 _install_service () {
-    cp "${SCRIPT_PATH}/$SYSTEMD_FILE" "$SYSTEMD_FILE_PATH"
-    sudo systemctl daemon-reexec
-    sudo systemctl enable --now $SYSTEMD_SERVICE_NAME
+    # Create a temporary service file with the correct path
+    sed "s|SCRIPT_PATH_PLACEHOLDER|${SCRIPT_PATH}|g" "${SCRIPT_PATH}/$SYSTEMD_FILE" > "/tmp/$(basename $SYSTEMD_FILE)"
+    cp "/tmp/$(basename $SYSTEMD_FILE)" "$SYSTEMD_FILE_PATH"
+    rm "/tmp/$(basename $SYSTEMD_FILE)"
+    sudo systemctl daemon-reload
+    sudo systemctl enable $SYSTEMD_SERVICE_NAME
     sudo systemctl start $SYSTEMD_SERVICE_NAME
 }
 _uninstall_service() {
