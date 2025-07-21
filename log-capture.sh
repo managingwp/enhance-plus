@@ -29,12 +29,12 @@ _usage() {
 _install_service () {
     cp "${SCRIPT_PATH}/$SYSTEMD_FILE" "$SYSTEMD_FILE_PATH"
     sudo systemctl daemon-reexec
-    sudo systemctl enable --now $SYSTEMD_FILE
-    sudo systemctl start $SYSTEMD_FILE
+    sudo systemctl enable --now $SYSTEMD_SERVICE_NAME
+    sudo systemctl start $SYSTEMD_SERVICE_NAME
 }
 _uninstall_service() {
-    sudo systemctl stop enhance-log-capture.service
-    sudo systemctl disable enhance-log-capture.service
+    sudo systemctl stop $SYSTEMD_SERVICE_NAME
+    sudo systemctl disable $SYSTEMD_SERVICE_NAME
     sudo rm -f $SYSTEMD_FILE_PATH
 }
 
@@ -58,6 +58,7 @@ _pre-flight () {
 
 _running "Installing enhance-log-capture"
 SYSTEMD_FILE="log-capture/enhance-log-capture.service"
+SYSTEMD_SERVICE_NAME="enhance-log-capture.service"
 SYSTEMD_FILE_PATH="/etc/systemd/system/enhance-log-capture.service"
 LOGROTATE_FILE="log-capture/enhance-log-capture.logrotate"
 LOGROTATE_FILE_PATH="/etc/logrotate.d/enhance-log-capture"
