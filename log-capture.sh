@@ -57,9 +57,9 @@ _pre-flight () {
 }
 
 _running "Installing enhance-log-capture"
-SYSTEMD_FILE="enhance-log-capture.service"
+SYSTEMD_FILE="log-capture/enhance-log-capture.service"
 SYSTEMD_FILE_PATH="/etc/systemd/system/enhance-log-capture.service"
-LOGROTATE_FILE="enhance-log-capture.logrotate"
+LOGROTATE_FILE="log-capture/enhance-log-capture.logrotate"
 LOGROTATE_FILE_PATH="/etc/logrotate.d/enhance-log-capture"
 
 # -- Args
