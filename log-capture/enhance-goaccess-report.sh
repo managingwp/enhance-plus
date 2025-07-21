@@ -42,10 +42,48 @@ function _pre-flight () {
 }
 
 # =====================================
+# -- create_htaccess
+# -- Function to create .htaccess file to disable caching
+# =====================================
+create_htaccess() {
+    local REPORT_DIR="$1"
+    local HTACCESS_FILE="$REPORT_DIR/.htaccess"
+    
+    _running2 "Creating .htaccess file in $REPORT_DIR"
+    
+    cat <<EOF > "$HTACCESS_FILE"
+# Disable LiteSpeed server cache for everything
+<IfModule LiteSpeed>
+  CacheDisable public /
+  CacheDisable private /
+</IfModule>
+
+# Turn off any Expires headers
+<IfModule mod_expires.c>
+  ExpiresActive Off
+</IfModule>
+
+# Prevent browser caching via headers
+<IfModule mod_headers.c>
+  Header set Cache-Control "no-store, no-cache, must-revalidate, max-age=0"
+  Header set Pragma "no-cache"
+  Header set Expires "Thu, 01 Jan 1970 00:00:00 GMT"
+  Header unset ETag
+</IfModule>
+
+# Disable ETags
+FileETag None
+EOF
+}
+
+# =====================================
 # -- process_log
 # -- Function to process logs and generate GoAccess reports
 # =====================================
 function process_logs () {
+    # Create .htaccess file to disable caching
+    create_htaccess "$REPORT_DIR"
+    
     SITES=(/var/local/enhance/appcd/*/website.json)
     for SITE_JSON_FILE in "${SITES[@]}"; do
         SITE_JSON=$(cat "$SITE_JSON_FILE")
@@ -115,6 +153,9 @@ process_log_site() {
 # -- Function to generate historical reports
 # =====================================
 function generate_historical_reports() {
+    # Create .htaccess file to disable caching
+    create_htaccess "$REPORT_DIR"
+    
     SITES=(/var/local/enhance/appcd/*/website.json)
     for SITE_JSON_FILE in "${SITES[@]}"; do
         SITE_JSON=$(cat "$SITE_JSON_FILE")
@@ -217,6 +258,9 @@ generate_historical_report_site() {
 # -- Function to generate index.html for all sites
 # =====================================
 generate_index() {
+    # Create .htaccess file to disable caching
+    create_htaccess "$REPORT_DIR"
+    
     _running2 "Generating index.html for all domains in $REPORT_DIR"
     SITES=(/var/local/enhance/appcd/*/website.json)
     for SITE_JSON_FILE in "${SITES[@]}"; do
