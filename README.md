@@ -6,13 +6,4 @@ Retain and rotate web server log files on the enhance platform. Why? If a site i
 * Utilizes systemd and a bash script with inotifywait to capture logs before they're truncated to /var/log/webserver_logs
 * Utilizes logrotate to compress and move logs to /var/log/webserver_logs_archive
 
-## Caveats/Issues
-* Some logs entries might be missed due to the log file being rotated.
-* The log entries might be out of order.
-
-## Install
-This is an example install. You will want to be logged in as root.
-1. `mkdir -p $HOME/bin;cd $HOME/bin`
-2. `git clone https://github.com/managingwp/enhance-log-capture.git`
-3. `cd enhance-log-capture`
-4. `./install.sh`
+[log-capture/README.md](log-capture/README.md)

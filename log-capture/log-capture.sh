@@ -45,10 +45,7 @@ _uninstall_service() {
 }
 
 _install_logrotate() {
-    # Create a temporary logrotate file with the correct path
-    sed "s|SCRIPT_PATH_PLACEHOLDER|${SCRIPT_PATH}|g" "${SCRIPT_PATH}/$LOGROTATE_FILE" > "/tmp/$(basename $LOGROTATE_FILE)"
-    cp "/tmp/$(basename $LOGROTATE_FILE)" "$LOGROTATE_FILE_PATH"
-    rm "/tmp/$(basename $LOGROTATE_FILE)"
+    cp "${SCRIPT_PATH}/$LOGROTATE_FILE" "$LOGROTATE_FILE_PATH"
     sudo chmod 644 $LOGROTATE_FILE_PATH
 }
 
