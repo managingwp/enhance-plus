@@ -16,15 +16,20 @@
     endscript
 }
 
-# Compress uncompressed domain-based log files
-/var/log/webserver_logs_archive/*.log-[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9] /var/log/webserver_logs/*.log-[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]  {
-    compress
-    rotate 1
-    size 1
+# Compress uncompressed domain-based log files (runs after main rotation)
+/dev/null {
+    hourly
+    rotate 0
     missingok
-    notifempty
     nocreate
-    noolddir
+    postrotate
+        # Compress any uncompressed domain-based log files
+        find /var/log/webserver_logs/ /var/log/webserver_logs_archive/ -name "*.log-[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]" -type f ! -name "*.gz" 2>/dev/null | while read -r logfile; do
+            if [ -f "$logfile" ]; then
+                gzip "$logfile"
+            fi
+        done
+    endscript
 }
 
 # Delete the file when it's older than 30 days
