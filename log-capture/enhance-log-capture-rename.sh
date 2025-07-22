@@ -75,18 +75,18 @@ _enhance_uuid_to_domain_db() {
         # -- Store the mapping in an associative array
         UUID_TO_DOMAIN["$UUID"]="$DOMAIN"
     done
-    _running2 "Found ${#UUID_TO_DOMAIN[@]} UUID to domain mappings"    
-
+    _running2 "Found ${#UUID_TO_DOMAIN[@]} UUID to domain mappings"
 }
+
 # =====================================
-# -- _enhance_uuid_to_domain_db $UUID
+# -- _enhance_uuid_to_domain $UUID
 # -- Enhance UUID to domain mapping
 # =====================================
 _enhance_uuid_to_domain() {
     UUID=$1
     if [[ -z "$UUID" ]]; then
         _error "UUID is required for enhance_uuid_to_domain"
-        exit 1
+        return 1
     fi
     # Check if associative array is populated
     if [[ ${#UUID_TO_DOMAIN[@]} -eq 0 ]]; then
