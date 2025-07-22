@@ -117,9 +117,7 @@ function _process_log_site() {
     [[ -d $DB_PATH ]] && RESTORE="--restore --keep-last=2" || { mkdir -p "$DB_PATH"; RESTORE="--keep-last=2"; }
     _running2 "DB_PATH: $DB_PATH"
     _running2 "RESTORE: $RESTORE"
-
-    # Remove whitespace for LOG_FILE
-    LOG_FILE=$(echo "$LOG_FILE" | xargs)
+    _running2 "LOG_FILE: $LOG_FILE"
 
     # -- Ensure domain-specific report directory exists
     [[ ! -d $DOMAIN_DIR ]] && mkdir -p "$DOMAIN_DIR"
