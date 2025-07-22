@@ -195,8 +195,8 @@ generate_historical_report_site() {
     mkdir -p "$BASE_DIR"
     
     # -- Grab every .gz for this site
-    FILE_ARCHIVES=($(ls -0 /var/log/webserver_logs/${SITE_ID}.log-*.gz))
-    FILE_ARCHIVES+=($(ls -0 /var/log/webserver_logs_archive/${DOMAIN}.log-*.gz))
+    FILE_ARCHIVES=($(ls -1 /var/log/webserver_logs/${SITE_ID}.log-*.gz))
+    FILE_ARCHIVES+=($(ls -1 /var/log/webserver_logs_archive/${DOMAIN}.log-*.gz))
     _debug "$FILE_ARCHIVES"
 
     # -- Count the number of archives
