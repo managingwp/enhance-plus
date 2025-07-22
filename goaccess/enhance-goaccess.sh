@@ -264,7 +264,7 @@ generate_historical_report_site() {
         done
 
         # no leading ^\" here
-        local LOG_FORMAT='"%h" "%d" "%r" "%s" "%b" "%T" "%R" "%u"'
+        local LOG_FORMAT='"%h" "%x" "%r" "%s" "%b" "%T" "%R" "%u"'
         _running4 "Running GoAccess on $TMP_LOG with format: $LOG_FORMAT"
 
         /usr/bin/goaccess "$TMP_LOG" \
