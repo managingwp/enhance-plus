@@ -280,20 +280,19 @@ generate_historical_report_site() {
 }
 
 # =====================================
-# -- generate_htaccess_protection $DOMAIN $DOMAIN_DIR
+# -- generate_htaccess_protection $DIR
 # -- Function to create .htaccess and .htpasswd files for authentication
 # =====================================
-generate_htaccess_protection() {
-    local DOMAIN="$1"
-    local DOMAIN_DIR="$2"
-    local HTACCESS_FILE="$DOMAIN_DIR/.htaccess"
-    local HTPASSWD_FILE="$DOMAIN_DIR/.htpasswd"
+function generate_htaccess_protection() {
+    local DIR="$1"    
+    local HTACCESS_FILE="$DIR/.htaccess"
+    local HTPASSWD_FILE="$DIR/.htpasswd"
 
-    _running2 "Generating .htaccess and .htpasswd for $DOMAIN in $DOMAIN_DIR"
+    _running2 "Generating .htaccess and .htpasswd in $DIR"
     
     # Create .htaccess and .htpasswd if they don't exist
     if [[ ! -f "$HTACCESS_FILE" ]]; then
-        _running3 "Creating .htaccess file for $DOMAIN"
+        _running3 "Creating .htaccess file for $DIR"
         cat <<EOF > "$HTACCESS_FILE"
 AuthType Basic
 AuthName "Restricted Area"
@@ -302,11 +301,11 @@ Require valid-user
 EOF
         _running3 ".htaccess created at $HTACCESS_FILE"
     else
-        _running3 ".htaccess already exists for $DOMAIN"
+        _running3 ".htaccess already exists for $DIR"
     fi
     
     if [[ ! -f "$HTPASSWD_FILE" ]]; then
-        _running3 "Creating .htpasswd file for $DOMAIN"
+        _running3 "Creating .htpasswd file for $DIR"
         # Generate random password
         local ADMIN_PASSWORD=$(openssl rand -base64 12)
         # Create htpasswd entry (using -B for bcrypt)
@@ -322,9 +321,9 @@ EOF
         _running3 "Admin credentials - Username: admin, Password: $ADMIN_PASSWORD"
         
         # Log credentials to the main log file for reference
-        echo "$(date '+%Y-%m-%d %H:%M:%S') - $DOMAIN - Admin credentials - Username: admin, Password: $ADMIN_PASSWORD" >> "$LOG_FILE"
+        echo "$(date '+%Y-%m-%d %H:%M:%S') - $DIR - Admin credentials - Username: admin, Password: $ADMIN_PASSWORD" >> "$LOG_FILE"
     else
-        _running3 ".htpasswd already exists for $DOMAIN"
+        _running3 ".htpasswd already exists for $DIR"
     fi
 }
 
@@ -355,8 +354,6 @@ generate_index_site() {
     
     _running2 "Generating index.html for $DOMAIN in dir $DOMAIN_DIR"
     
-    # Generate .htaccess protection
-    generate_htaccess_protection "$DOMAIN" "$DOMAIN_DIR"
     # -- Start HTML skeleton
     cat <<EOF > "$INDEX_FILE"
 <!DOCTYPE html>
@@ -398,6 +395,9 @@ generate_root_index() {
     _running "Generating root index.html for all domains"
     local BASE_DIR="$1"
     local INDEX_FILE="$BASE_DIR/index.html"
+
+    # Generate .htaccess protection
+    generate_htaccess_protection "$BASE_DIR"
 
     # -- Start HTML skeleton
     cat <<EOF > "$INDEX_FILE"
