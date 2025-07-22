@@ -36,7 +36,7 @@ _running () { echo -e "-- $*" | tee -a "$LOG_FILE"; }
 _running2 () { echo -e "\t-- $*" | tee -a "$LOG_FILE"; }
 _running3 () { echo -e "\t\t-- $*" | tee -a "$LOG_FILE"; }
 _running4 () { echo -e "\t\t\t-- $*" | tee -a "$LOG_FILE"; }
-_error () { echo -e "ERROR: $*" | tee -a "$LOG_FILE"; }
+_error () { echo -e "\e[1;31mERROR: $*\e[0m" | tee -a "$LOG_FILE"; }
 
 # -- Usage
 _usage () {
@@ -54,6 +54,7 @@ _usage () {
     echo "  -h|--help     Show this help message"
     echo
     echo "Configuration File:"
+    echo
     echo "  The script will look for configuration in:"
     echo "    1. /etc/enhance-goaccess.conf"
     echo "    2. ./enhance-goaccess.conf (in current directory)"
@@ -62,7 +63,8 @@ _usage () {
     echo "Examples:"
     echo "  $0 -c process -d /var/local/enhance/goaccess_reports"
     echo "  $0 -c historical -d /var/local/enhance/goaccess_reports"
-    echo "  $0 -c index -d /var/local/enhance/goaccess_reports"   
+    echo "  $0 -c index -d /var/local/enhance/goaccess_reports"
+    echo
 }
 
 # ======================================
