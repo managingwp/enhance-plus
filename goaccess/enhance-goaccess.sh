@@ -303,7 +303,42 @@ generate_index_site() {
     local BASE_DIR="$2"
     local DOMAIN_DIR="$BASE_DIR/$DOMAIN"
     local INDEX_FILE="$DOMAIN_DIR/index.html"
+    local HTACCESS_FILE="$DOMAIN_DIR/.htaccess"
+    local HTPASSWD_FILE="$DOMAIN_DIR/.htpasswd"
+    
     _running2 "Generating index.html for $DOMAIN in dir $DOMAIN_DIR"
+    
+    # Create .htaccess and .htpasswd if they don't exist
+    if [[ ! -f "$HTACCESS_FILE" ]]; then
+        _running3 "Creating .htaccess file for $DOMAIN"
+        cat <<EOF > "$HTACCESS_FILE"
+AuthType Basic
+AuthName "Restricted Area"
+AuthUserFile $HTPASSWD_FILE
+Require valid-user
+EOF
+        _running3 ".htaccess created at $HTACCESS_FILE"
+    fi
+    
+    if [[ ! -f "$HTPASSWD_FILE" ]]; then
+        _running3 "Creating .htpasswd file for $DOMAIN"
+        # Generate random password
+        local ADMIN_PASSWORD=$(openssl rand -base64 12)
+        # Create htpasswd entry (using -B for bcrypt)
+        if command -v htpasswd &> /dev/null; then
+            htpasswd -cB "$HTPASSWD_FILE" admin <<< "$ADMIN_PASSWORD"
+        else
+            # Fallback if htpasswd is not available - use openssl
+            local ENCRYPTED_PASSWORD=$(openssl passwd -apr1 "$ADMIN_PASSWORD")
+            echo "admin:$ENCRYPTED_PASSWORD" > "$HTPASSWD_FILE"
+        fi
+        chmod 600 "$HTPASSWD_FILE"
+        _running3 ".htpasswd created at $HTPASSWD_FILE"
+        _running3 "Admin credentials - Username: admin, Password: $ADMIN_PASSWORD"
+        
+        # Log credentials to the main log file for reference
+        echo "$(date '+%Y-%m-%d %H:%M:%S') - $DOMAIN - Admin credentials - Username: admin, Password: $ADMIN_PASSWORD" >> "$LOG_FILE"
+    fi
     # -- Start HTML skeleton
     cat <<EOF > "$INDEX_FILE"
 <!DOCTYPE html>
