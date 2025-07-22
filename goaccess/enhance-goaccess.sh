@@ -196,6 +196,7 @@ generate_historical_report_site() {
     
     # -- Grab every .gz for this site
     FILE_ARCHIVES=(/var/log/webserver_logs/${SITE_ID}.log-*.gz)
+    FILE_ARCHIVES+=(/var/log/webserver_logs_archive/${DOMAIN}.log-*.gz)
 
     # -- Count the number of archives
     local ACRHIVE_COUNT=${#FILE_ARCHIVES[@]}
