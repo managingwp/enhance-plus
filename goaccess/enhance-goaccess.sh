@@ -309,13 +309,8 @@ EOF
         # Generate random password
         local ADMIN_PASSWORD=$(openssl rand -base64 12)
         # Create htpasswd entry (using -B for bcrypt)
-        if command -v htpasswd &> /dev/null; then
-            htpasswd -cB "$HTPASSWD_FILE" admin <<< "$ADMIN_PASSWORD"
-        else
-            # Fallback if htpasswd is not available - use openssl
-            local ENCRYPTED_PASSWORD=$(openssl passwd -apr1 "$ADMIN_PASSWORD")
-            echo "admin:$ENCRYPTED_PASSWORD" > "$HTPASSWD_FILE"
-        fi
+        local ENCRYPTED_PASSWORD=$(openssl passwd -apr1 "$ADMIN_PASSWORD")
+        echo "admin:$ENCRYPTED_PASSWORD" > "$HTPASSWD_FILE"
         chmod 600 "$HTPASSWD_FILE"
         _running3 ".htpasswd created at $HTPASSWD_FILE"
         _running3 "Admin credentials - Username: admin, Password: $ADMIN_PASSWORD"
