@@ -114,7 +114,8 @@ function _process_log_site() {
     local DB_PATH="$DOMAIN_DIR/db"
     local RESTORE=""
     [[ -d $DB_PATH ]] && RESTORE="--restore --keep-last=2" || { mkdir -p "$DB_PATH"; RESTORE="--keep-last=2"; }
-    _running2 "DB_PATH: $DB_PATH - RESTORE: $RESTORE"
+    _running2 "DB_PATH: $DB_PATH"
+    _running2 "RESTORE: $RESTORE"
 
     # -- Ensure domain-specific report directory exists
     [[ ! -d $DOMAIN_DIR ]] && mkdir -p "$DOMAIN_DIR"
@@ -143,7 +144,9 @@ function _process_log_site() {
         --html-refresh \
         --no-global-config"
     _running2 "Running command: $GO_ACCESS_CMD"
+    echo "==RUN==========================================================================="
     eval "$GO_ACCESS_CMD"
+    echo "==RUN==========================================================================="
 
     # -- Cleanup
     LOG_FILE_LINE="$(tail -n 1 $LOG_FILE)"
