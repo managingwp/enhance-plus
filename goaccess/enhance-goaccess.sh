@@ -427,7 +427,10 @@ elif [[ -z $REPORT_DIR ]]; then
     _error "Error: report directory is required. Use -d|--directory or set REPORT_DIR in configuration file."
     exit 1
 elif [[ $MODE == "process" ]]; then
-    _running "Starting GoAccess report generation"
+    START_DATE=$(date +%Y-%m-%d)
+    _running "------------------------------------"
+    _running "Starting GoAccess report generation for $START_DATE"
+    _running "------------------------------------"
     _process_logs
 elif [[ $MODE == "past" ]]; then
     _running "Generating historical reports"
