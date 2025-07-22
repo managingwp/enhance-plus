@@ -146,8 +146,8 @@ function _process_log_site() {
         --persist \
         -o "$OUTFILE" \
         --log-format='^\"%h\" \"%x\" \"%r\" \"%s\" \"%b\" \"%T\" \"%R\" \"%u\"' \
-        --date-format='%f' \
-        --time-format='%f' \
+        --date-format='%s' \
+        --time-format='%s' \
         --agent-list \
         --html-refresh \
         --no-global-config"
