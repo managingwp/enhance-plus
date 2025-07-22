@@ -115,6 +115,7 @@ _install_logrotate_with_checks() {
 # -- Install Logrotate
 # =======================================
 _install_logrotate() {
+    _running2 "Installing logrotate configuration $LOGROTATE_FILE at $LOGROTATE_FILE_PATH"    
     # Create a temporary logrotate file with the correct path
     sed "s|LOGROTATE_SCRIPT_PATH_PLACEHOLDER|${SCRIPT_PATH}|g" "${SCRIPT_PATH}/$LOGROTATE_FILE" > "/tmp/$(basename $LOGROTATE_FILE)"
     cp "/tmp/$(basename $LOGROTATE_FILE)" "$LOGROTATE_FILE_PATH"
