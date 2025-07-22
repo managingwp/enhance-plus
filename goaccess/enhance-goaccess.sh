@@ -13,6 +13,21 @@ MODE=""
 REPORT_DIR=""
 LOG_FILE="/var/log/enhance-goaccess-report.log"
 
+# ===============================================================================
+# -- Load configuration file
+# ==============================================================================
+CONFIG_FILE="/etc/enhance-goaccess.conf"
+if [[ -f "$CONFIG_FILE" ]]; then
+    # Source the config file to load variables
+    source "$CONFIG_FILE"
+elif [[ -f "./enhance-goaccess.conf" ]]; then
+    # Fallback to local config file in current directory
+    source "./enhance-goaccess.conf"
+fi
+
+# Set default LOG_FILE if not set in config
+LOG_FILE="${LOG_FILE:-/var/log/enhance-goaccess-report.log}"
+
 # ================================================================================
 # -- Functions
 # ================================================================================
@@ -34,7 +49,14 @@ _usage () {
     echo
     echo "Options:"    
     echo "  -d|--directory <directory>  Directory to store reports"
+    echo "                              (can also be set in /etc/enhance-goaccess.conf or ./enhance-goaccess.conf)"
     echo "  -h|--help     Show this help message"
+    echo
+    echo "Configuration File:"
+    echo "  The script will look for configuration in:"
+    echo "    1. /etc/enhance-goaccess.conf"
+    echo "    2. ./enhance-goaccess.conf (in current directory)"
+    echo "  Command line options override configuration file settings."
     echo
     echo "Examples:"
     echo "  $0 -c process -d /var/local/enhance/goaccess_reports"
@@ -60,7 +82,7 @@ function _pre-flight () {
 # -- process_log
 # -- Function to process logs and generate GoAccess reports
 # =====================================
-function process_logs () {
+function _process_logs () {
     SITES=(/var/local/enhance/appcd/*/website.json)
     for SITE_JSON_FILE in "${SITES[@]}"; do
         SITE_JSON=$(cat "$SITE_JSON_FILE")
@@ -68,16 +90,17 @@ function process_logs () {
         SITE_DOMAIN=$(echo "$SITE_JSON" | jq -r '.mapped_domains[] | select(.is_primary == true).domain')
         LOG_FILE="/var/log/webserver_logs/${SITE_ID}.log"
         _running "Processing log for $SITE_DOMAIN ($SITE_ID)"
-        process_log_site "$SITE_DOMAIN" "$SITE_ID" "$LOG_FILE" "$REPORT_DIR"
+        _process_log_site "$SITE_DOMAIN" "$SITE_ID" "$LOG_FILE" "$REPORT_DIR"
         generate_index_site "$SITE_DOMAIN" "$REPORT_DIR"
     done
     generate_root_index "$REPORT_DIR"
 }
 
 # =====================================
+# -- _process_log_site $DOMAIN $SITE_ID $LOG_FILE $BASE_DIR
 # -- Function to process logs and generate hourly GoAccess reports
 # =====================================
-process_log_site() {
+function _process_log_site() {
     local DOMAIN="$1"
     local SITE_ID="$2"
     local LOG_FILE="$3"
@@ -94,7 +117,7 @@ process_log_site() {
     [[ ! -d $DOMAIN_DIR ]] && mkdir -p "$DOMAIN_DIR"
 
     # -- Extract only lines from the last hour using grep
-    # "50.175.91.30" "1747849176" "GET /wp-content/uploads/2025/05/unnamed-40-1.jpg HTTP/1.1" "200" "1284" "32427" "https://calbizjournal.com/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+    # "50.175.91.30" "1747849176" "GET /wp-content/uploads/2025/05/unnamed-40-1.jpg HTTP/1.1" "200" "1284" "32427" "https://domain.com/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
     # -- For Unix timestamp logs, uncomment the line below
     #HOUR_TOKEN=$(date -d '1 hour ago' +%s)
     #echo -e "\t-- Extracting logs for the last hour ($HOUR_TOKEN)"
@@ -363,7 +386,7 @@ do
 key="$1"
 
 case $key in
-    -m|--mode)
+    -c|--command)
     MODE="$2"
     shift # past argument
     shift # past value
@@ -389,11 +412,15 @@ _pre-flight
 
 if [[ -z $MODE ]]; then
     _usage
-    _error "Error: mode is required. Use -m|--mode to specify."
+    _error "Error: command is required. Use -c|--command to specify."
+    exit 1
+elif [[ -z $REPORT_DIR ]]; then
+    _usage
+    _error "Error: report directory is required. Use -d|--directory or set REPORT_DIR in configuration file."
     exit 1
 elif [[ $MODE == "process" ]]; then
     _running "======== Starting GoAccess report generation ========"
-    process_logs
+    _process_logs
 elif [[ $MODE == "past" ]]; then
     _running "Generating historical reports"
     generate_historical_reports
