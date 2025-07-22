@@ -85,12 +85,12 @@ _enhance_uuid_to_domain_db() {
 _enhance_uuid_to_domain() {
     UUID=$1
     if [[ -z "$UUID" ]]; then
-        _error "UUID is required for enhance_uuid_to_domain"
+        echo "UUID is required for enhance_uuid_to_domain"
         return 1
     fi
     # Check if associative array is populated
     if [[ ${#UUID_TO_DOMAIN[@]} -eq 0 ]]; then
-        _error "UUID_TO_DOMAIN associative array is empty, run _enhance_uuid_to_domain_db first"
+        echo "UUID_TO_DOMAIN associative array is empty, run _enhance_uuid_to_domain_db first"
         return 1
     fi
 
@@ -152,7 +152,7 @@ _rename_log_files() {
         _running2 "Getting domain for UUID: $UUID"
         DOMAIN=$(_enhance_uuid_to_domain "$UUID")
         if [[ $? -ne 0 ]]; then
-            _warning "enhance_uuid_to_domain failed for UUID:$UUID"
+            _warning "enhance_uuid_to_domain failed for UUID:$UUID with error: $DOMAIN"
             continue
         fi
 
