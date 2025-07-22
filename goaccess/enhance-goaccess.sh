@@ -118,6 +118,9 @@ function _process_log_site() {
     _running2 "DB_PATH: $DB_PATH"
     _running2 "RESTORE: $RESTORE"
 
+    # Remove whitespace for LOG_FILE
+    LOG_FILE=$(echo "$LOG_FILE" | xargs)
+
     # -- Ensure domain-specific report directory exists
     [[ ! -d $DOMAIN_DIR ]] && mkdir -p "$DOMAIN_DIR"
 
