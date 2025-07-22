@@ -108,9 +108,13 @@ if [[ $CMD == "install" ]]; then
         _running2 "Force installing systemd service"
         _install_service
     else
-        # -- Check md5 hash
-        HASH_SYSTEMD_FILE=$(md5sum "$SCRIPT_PATH/$SYSTEMD_FILE" | awk '{print $1}')
+        # -- Check md5 hash - use a temp file to compare since we modify the source during install
+        TEMP_SYSTEMD=$(mktemp)
+        sed "s|SCRIPT_PATH_PLACEHOLDER|${SCRIPT_PATH}|g" "${SCRIPT_PATH}/$SYSTEMD_FILE" > "$TEMP_SYSTEMD"
+        HASH_SYSTEMD_FILE=$(md5sum "$TEMP_SYSTEMD" | awk '{print $1}')
         HASH_SYSTEMD_FILE_PATH=$(md5sum "$SYSTEMD_FILE_PATH" | awk '{print $1}')
+        rm -f "$TEMP_SYSTEMD"
+        
         if [[ $HASH_SYSTEMD_FILE != $HASH_SYSTEMD_FILE_PATH ]]; then
             _running2 "File $SYSTEMD_FILE_PATH exists, but the hash does not match, installing"
             _install_service
@@ -128,9 +132,13 @@ if [[ $CMD == "install" ]]; then
         _running2 "Force installing logrotate configuration $LOGROTATE_FILE at $LOGROTATE_FILE_PATH"
         _install_logrotate
     else
-        # -- Check md5 hash
-        HASH_LOGROTATE_FILE=$(md5sum "$SCRIPT_PATH/$LOGROTATE_FILE" | awk '{print $1}')
+        # -- Check md5 hash - use a temp file to compare since we modify the source during install
+        TEMP_LOGROTATE=$(mktemp)
+        sed "s|SCRIPT_PATH_PLACEHOLDER|${SCRIPT_PATH}|g" "${SCRIPT_PATH}/$LOGROTATE_FILE" > "$TEMP_LOGROTATE"
+        HASH_LOGROTATE_FILE=$(md5sum "$TEMP_LOGROTATE" | awk '{print $1}')
         HASH_LOGROTATE_FILE_PATH=$(md5sum "$LOGROTATE_FILE_PATH" | awk '{print $1}')
+        rm -f "$TEMP_LOGROTATE"
+        
         if [[ $HASH_LOGROTATE_FILE != $HASH_LOGROTATE_FILE_PATH ]]; then
             _running2 "File $LOGROTATE_FILE_PATH exists, but the hash does not match, installing"
             _install_logrotate
@@ -190,9 +198,13 @@ elif [[ $CMD == "logrotate" ]]; then
         _running2 "Force installing logrotate configuration $LOGROTATE_FILE at $LOGROTATE_FILE_PATH"
         _install_logrotate
     else
-        # -- Check md5 hash
-        HASH_LOGROTATE_FILE=$(md5sum "$SCRIPT_PATH/$LOGROTATE_FILE" | awk '{print $1}')
+        # -- Check md5 hash - use a temp file to compare since we modify the source during install
+        TEMP_LOGROTATE=$(mktemp)
+        sed "s|SCRIPT_PATH_PLACEHOLDER|${SCRIPT_PATH}|g" "${SCRIPT_PATH}/$LOGROTATE_FILE" > "$TEMP_LOGROTATE"
+        HASH_LOGROTATE_FILE=$(md5sum "$TEMP_LOGROTATE" | awk '{print $1}')
         HASH_LOGROTATE_FILE_PATH=$(md5sum "$LOGROTATE_FILE_PATH" | awk '{print $1}')
+        rm -f "$TEMP_LOGROTATE"
+        
         if [[ $HASH_LOGROTATE_FILE != $HASH_LOGROTATE_FILE_PATH ]]; then
             _running2 "File $LOGROTATE_FILE_PATH exists, but the hash does not match, installing"
             _install_logrotate
