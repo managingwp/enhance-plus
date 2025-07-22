@@ -32,7 +32,7 @@ LOG_FILE="${LOG_FILE:-/var/log/enhance-goaccess-report.log}"
 # -- Functions
 # ================================================================================
 # -- Echo commands
-_running () { echo -e "##### $* #####" | tee -a "$LOG_FILE"; }
+_running () { echo -e "########## $* ##########" | tee -a "$LOG_FILE"; }
 _running2 () { echo -e "  -- $*" | fold -s -w 80 | sed '2,$s/^/\t   /' | tee -a "$LOG_FILE"; }
 _running3 () { echo -e "    -- $*" | fold -s -w 76 | sed '2,$s/^/\t\t   /' | tee -a "$LOG_FILE"; }
 _running4 () { echo -e "      -- $*" | fold -s -w 72 | sed '2,$s/^/\t\t\t   /' | tee -a "$LOG_FILE"; }
@@ -427,7 +427,7 @@ elif [[ -z $REPORT_DIR ]]; then
     _error "Error: report directory is required. Use -d|--directory or set REPORT_DIR in configuration file."
     exit 1
 elif [[ $MODE == "process" ]]; then
-    _running "======== Starting GoAccess report generation ========"
+    _running "Starting GoAccess report generation"
     _process_logs
 elif [[ $MODE == "past" ]]; then
     _running "Generating historical reports"
