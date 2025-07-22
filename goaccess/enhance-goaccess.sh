@@ -36,6 +36,7 @@ _running () { echo -e "########## $* ##########" | tee -a "$LOG_FILE"; }
 _running2 () { echo -e "  -- $*" | fold -s -w 80 | sed '2,$s/^/\t   /' | tee -a "$LOG_FILE"; }
 _running3 () { echo -e "    -- $*" | fold -s -w 76 | sed '2,$s/^/\t\t   /' | tee -a "$LOG_FILE"; }
 _running4 () { echo -e "      -- $*" | fold -s -w 72 | sed '2,$s/^/\t\t\t   /' | tee -a "$LOG_FILE"; }
+_log () { echo -e "$*" | tee -a "$LOG_FILE"; }
 _error () { echo -e "\e[1;31mERROR: $*\e[0m" | fold -s -w 80 | sed '2,$s/^/       /' | tee -a "$LOG_FILE"; }
 
 # -- Usage
@@ -146,9 +147,9 @@ function _process_log_site() {
         --html-refresh \
         --no-global-config"
     _running2 "Running command: $GO_ACCESS_CMD"
-    _running "        ==RUN=================================================="
+    _log "        ==RUN=================================================="
     eval "$GO_ACCESS_CMD"
-    _running "        ==RUN=================================================="
+    _log "        ==RUN=================================================="
 
     # -- Cleanup
     LOG_FILE_LINE="$(tail -n 2 $WEB_LOG_FILE)"
