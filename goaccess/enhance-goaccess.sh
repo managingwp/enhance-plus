@@ -310,23 +310,24 @@ EOF
         local ADMIN_PASSWORD=$(openssl rand -base64 12)
         
         # Create htpasswd entry using openssl
-        _running3 "Using python3 for password encryption"            
-        # Alternative: use crypt() function via Python if available
-        if command -v python3 &> /dev/null; then
-            local ENCRYPTED_PASSWORD=$(python3 -c "import crypt; print(crypt.crypt('$ADMIN_PASSWORD', crypt.mksalt(crypt.METHOD_MD5)))")
-            if [[ $? -eq 0 && -n "$ENCRYPTED_PASSWORD" ]]; then
-                echo "admin:$ENCRYPTED_PASSWORD" > "$HTPASSWD_FILE"
-                chmod 600 "$HTPASSWD_FILE"
-                _running3 ".htpasswd created at $HTPASSWD_FILE using Python fallback"
-                _running3 "Admin credentials - Username: admin, Password: $ADMIN_PASSWORD"
-                echo "$(date '+%Y-%m-%d %H:%M:%S') - $DIR - Admin credentials - Username: admin, Password: $ADMIN_PASSWORD" >> "$LOG_FILE"
-            else
-                _error "Both openssl and Python encryption methods failed"
-                return 1
-            fi
+        _running3 "Using openssl for password encryption"
+        local ENCRYPTED_PASSWORD=$(openssl passwd -apr1 "$ADMIN_PASSWORD" 2>/dev/null)
+        if [[ $? -eq 0 && -n "$ENCRYPTED_PASSWORD" ]]; then
+            echo "admin:$ENCRYPTED_PASSWORD" > "$HTPASSWD_FILE"
+            chmod 600 "$HTPASSWD_FILE"
+            _running3 ".htpasswd created at $HTPASSWD_FILE"
+            _running3 "Admin credentials - Username: admin, Password: $ADMIN_PASSWORD"
+            echo "$(date '+%Y-%m-%d %H:%M:%S') - $DIR - Admin credentials - Username: admin, Password: $ADMIN_PASSWORD" >> "$LOG_FILE"
         else
-            _error "No password encryption method available (openssl failed, python3 not found)"
-            return 1
+            # Fallback: use a simple base64 encoded password (less secure but works)
+            _running3 "OpenSSL failed, using base64 fallback (less secure)"
+            local ENCODED_PASSWORD=$(echo -n "$ADMIN_PASSWORD" | base64)
+            echo "admin:{BASE64}$ENCODED_PASSWORD" > "$HTPASSWD_FILE"
+            chmod 600 "$HTPASSWD_FILE"
+            _running3 ".htpasswd created at $HTPASSWD_FILE using base64 encoding"
+            _running3 "Admin credentials - Username: admin, Password: $ADMIN_PASSWORD"
+            _running3 "WARNING: Using base64 encoding - consider installing proper tools for better security"
+            echo "$(date '+%Y-%m-%d %H:%M:%S') - $DIR - Admin credentials (base64) - Username: admin, Password: $ADMIN_PASSWORD" >> "$LOG_FILE"
         fi
     else
         _running3 ".htpasswd already exists for $DIR"
