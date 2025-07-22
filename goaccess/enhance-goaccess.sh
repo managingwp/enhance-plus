@@ -146,9 +146,9 @@ function _process_log_site() {
         --html-refresh \
         --no-global-config"
     _running2 "Running command: $GO_ACCESS_CMD"
-    _running3 "==RUN=================================================="
+    _running "        ==RUN=================================================="
     eval "$GO_ACCESS_CMD"
-    _running3 "==RUN=================================================="
+    _running "        ==RUN=================================================="
 
     # -- Cleanup
     LOG_FILE_LINE="$(tail -n 2 $WEB_LOG_FILE)"
