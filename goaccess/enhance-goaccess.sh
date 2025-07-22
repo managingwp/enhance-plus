@@ -411,6 +411,7 @@ case $key in
     REPORT_DIR="$2"
     shift # past argument
     shift # past value
+    ;;
     --debug)
     DEBUG=1
     shift # past argument
