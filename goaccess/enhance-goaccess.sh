@@ -197,6 +197,7 @@ generate_historical_report_site() {
     # -- Grab every .gz for this site
     FILE_ARCHIVES=(/var/log/webserver_logs/${SITE_ID}.log-*.gz)
     FILE_ARCHIVES+=(/var/log/webserver_logs_archive/${DOMAIN}.log-*.gz)
+    _debug "$FILE_ARCHIVES"
 
     # -- Count the number of archives
     local ACRHIVE_COUNT=${#FILE_ARCHIVES[@]}
@@ -210,7 +211,7 @@ generate_historical_report_site() {
     declare -A SEEN_DATES=()
     for archive in "${FILE_ARCHIVES[@]}"; do
         _running3 "Processing archive: $archive"
-        [[ ! -f $archive ]] && { _running3 "File not found: $archive"; continue;  }
+        [[ ! -f $archive ]] && { _running3 "Error: File not found: $archive"; continue;  }
         filename=$(basename "$archive")
         temp="${filename#${SITE_ID}.log-}"
         temp="${temp%.gz}"
