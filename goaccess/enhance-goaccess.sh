@@ -428,9 +428,9 @@ elif [[ -z $REPORT_DIR ]]; then
     exit 1
 elif [[ $MODE == "process" ]]; then
     START_DATE=$(date +%Y-%m-%d_%H:%M:%S)
-    _running "--------------------------------------------------------"
+    _running "----------------------------------------------------------"
     _running "Starting GoAccess report generation for $START_DATE"
-    _running "--------------------------------------------------------"
+    _running "----------------------------------------------------------"
     _process_logs
 elif [[ $MODE == "past" ]]; then
     _running "Generating historical reports"
