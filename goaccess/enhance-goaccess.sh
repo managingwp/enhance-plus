@@ -38,6 +38,11 @@ _running3 () { echo -e "    -- $*" | fold -s -w 76 | sed '2,$s/^/\t\t   /' | tee
 _running4 () { echo -e "      -- $*" | fold -s -w 72 | sed '2,$s/^/\t\t\t   /' | tee -a "$LOG_FILE"; }
 _log () { echo -e "$*" | tee -a "$LOG_FILE"; }
 _error () { echo -e "\e[1;31mERROR: $*\e[0m" | fold -s -w 80 | sed '2,$s/^/       /' | tee -a "$LOG_FILE"; }
+_debug () { 
+    if [[ $DEBUG -eq 1 ]]; then
+        echo -e "\e[1;35mDEBUG: $*\e[0m" | fold -s -w 80 | sed '2,$s/^/       /' | tee -a "$LOG_FILE"
+    fi
+}
 
 # -- Usage
 _usage () {
@@ -406,6 +411,9 @@ case $key in
     REPORT_DIR="$2"
     shift # past argument
     shift # past value
+    --debug)
+    DEBUG=1
+    shift # past argument
     ;;
     -h|--help)
     _usage
