@@ -218,7 +218,7 @@ generate_historical_report_site() {
         _running2 "No historical archives found for $SITE_ID"
         return
     fi
-    _running2 "Found $ACRHIVE_COUNT historical archives for $SITE_ID"
+    _running3 "Found $ACRHIVE_COUNT historical archives for $SITE_ID"
 
     # collect unique dates
     declare -A SEEN_DATES=()
