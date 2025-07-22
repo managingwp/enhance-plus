@@ -467,6 +467,10 @@ elif [[ $MODE == "index" ]]; then
     _running "Generating index.html for all domains in $REPORT_DIR"
     generate_index
     generate_root_index
+elif [[ $MODE == "install-cron" ]]; then
+    _running "Installing cron job for GoAccess report generation"
+    _install_cron
+    _running "Cron job installed successfully"    
 else
     _usage
     _error "Error: Invalid mode specified. Use 'process', 'historical', or 'index'."
