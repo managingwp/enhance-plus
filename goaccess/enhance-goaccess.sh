@@ -303,7 +303,7 @@ generate_index_site() {
     local BASE_DIR="$2"
     local DOMAIN_DIR="$BASE_DIR/$DOMAIN"
     local INDEX_FILE="$DOMAIN_DIR/index.html"
-    _running "Generating index.html for $DOMAIN in dir $DOMAIN_DIR"
+    _running2 "Generating index.html for $DOMAIN in dir $DOMAIN_DIR"
     # -- Start HTML skeleton
     cat <<EOF > "$INDEX_FILE"
 <!DOCTYPE html>
@@ -334,6 +334,7 @@ EOF
 </body>
 </html>
 EOF
+    _running2 "Index file created at $INDEX_FILE"
 }
 
 # =====================================
