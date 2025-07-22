@@ -66,11 +66,25 @@ _pre-flight () {
 }
 
 _running "Installing enhance-log-capture"
+# Debug: Show what paths we're working with
+_running2 "Debug: SCRIPT_PATH = $SCRIPT_PATH"
+_running2 "Debug: Looking for files in: ${SCRIPT_PATH}/$SYSTEMD_FILE"
+
 SYSTEMD_FILE="log-capture/enhance-log-capture.service"
 SYSTEMD_SERVICE_NAME="enhance-log-capture.service"
 SYSTEMD_FILE_PATH="/etc/systemd/system/enhance-log-capture.service"
 LOGROTATE_FILE="log-capture/enhance-log-capture.logrotate"
 LOGROTATE_FILE_PATH="/etc/logrotate.d/enhance-log-capture"
+
+# Check if files exist and adjust paths if needed
+if [[ ! -f "${SCRIPT_PATH}/$SYSTEMD_FILE" ]]; then
+    _running2 "File not found at ${SCRIPT_PATH}/$SYSTEMD_FILE, trying without log-capture/ prefix"
+    SYSTEMD_FILE="enhance-log-capture.service"
+    LOGROTATE_FILE="enhance-log-capture.logrotate"
+fi
+
+_running2 "Debug: Final SYSTEMD_FILE path = ${SCRIPT_PATH}/$SYSTEMD_FILE"
+_running2 "Debug: Final LOGROTATE_FILE path = ${SCRIPT_PATH}/$LOGROTATE_FILE"
 
 # -- Args
 while [[ $# -gt 0 ]]; do
