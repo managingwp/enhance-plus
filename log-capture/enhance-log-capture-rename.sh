@@ -5,6 +5,7 @@
 # -- Variables
 # =============================================================================
 MODE=""
+DEBUG=0
 DRY_RUN=0
 USE_ARCHIVE=0
 ACTIVE_DIR="/var/log/webserver_logs"
@@ -18,6 +19,11 @@ _running2 () { echo -e "\e[1;30m-- ${*}\e[0m"; }
 _success () { echo -e "\e[1;32m${*}\e[0m"; }
 _warning () { echo -e "\e[1;33m${*}\e[0m"; }
 _error () { echo -e "\e[1;31m${*}\e[0m"; }
+_debug () {
+    if [[ $DEBUG -eq 1 ]]; then
+        echo -e "\e[1;35mDEBUG: ${*}\e[0m"
+    fi
+}
 _usage() {
     echo "Usage: $0 <rename|dryrun> [-a]"
     echo
@@ -49,6 +55,8 @@ _pre_flight() {
 # -- Enhance UUID to domain mapping
 # =====================================
 _enhance_uuid_to_domain_db() {
+    _running2 "Generating enhance UUID to domain mapping"
+    declare -A UUID_TO_DOMAIN
     # -- Get a list of all domains an UUID into an arry for use later.
     ENHANCE_SITES=($(ls -1 /var/local/enhance/appcd/*/website.json))
     if [ ${#ENHANCE_SITES[@]} -eq 0 ]; then
@@ -79,8 +87,15 @@ _enhance_uuid_to_domain() {
         _error "UUID is required for enhance_uuid_to_domain"
         exit 1
     fi
+    # Check if associative array is populated
+    if [[ ${#UUID_TO_DOMAIN[@]} -eq 0 ]]; then
+        _error "UUID_TO_DOMAIN associative array is empty, run _enhance_uuid_to_domain_db first"
+        return 1
+    fi
+
     # -- Get the domain from the UUID_TO_DOMAIN associative array
     DOMAIN=${UUID_TO_DOMAIN[$UUID]}
+    _debug "Debug: UUID=$UUID, DOMAIN=$DOMAIN"
     if [[ -z "$DOMAIN" ]]; then
         _warning "No domain found for UUID: $UUID"
         return 1
@@ -112,7 +127,6 @@ _rename_log_files() {
     fi
 
     # -- Get enhance UUID to domain mapping
-    declare -A UUID_TO_DOMAIN
     _enhance_uuid_to_domain_db
     [[ $? -ne 0 ]] && _error "Failed to get enhance UUID to domain mapping" && exit 1
 
@@ -198,6 +212,11 @@ while [[ $# -gt 0 ]]; do
             ;;
         -a|--archive)
             USE_ARCHIVE=1
+            shift
+            ;;
+        -d|--debug)
+            _running2 "Debug mode enabled"
+            DEBUG=1
             shift
             ;;
         -h|--help)
