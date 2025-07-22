@@ -310,36 +310,23 @@ EOF
         local ADMIN_PASSWORD=$(openssl rand -base64 12)
         
         # Create htpasswd entry using openssl
-        _running3 "Using openssl for password encryption"
-        local ENCRYPTED_PASSWORD=$(openssl passwd -apr1 "$ADMIN_PASSWORD")
-        if [[ $? -eq 0 && -n "$ENCRYPTED_PASSWORD" ]]; then
-            echo "admin:$ENCRYPTED_PASSWORD" > "$HTPASSWD_FILE"
-            chmod 600 "$HTPASSWD_FILE"
-            _running3 ".htpasswd created at $HTPASSWD_FILE"
-            _running3 "Admin credentials - Username: admin, Password: $ADMIN_PASSWORD"
-            
-            # Log credentials to the main log file for reference
-            echo "$(date '+%Y-%m-%d %H:%M:%S') - $DIR - Admin credentials - Username: admin, Password: $ADMIN_PASSWORD" >> "$LOG_FILE"
-        else
-            _error "Failed to encrypt password with openssl"
-            _running3 "Trying alternative encryption method..."
-            # Alternative: use crypt() function via Python if available
-            if command -v python3 &> /dev/null; then
-                local ENCRYPTED_PASSWORD=$(python3 -c "import crypt; print(crypt.crypt('$ADMIN_PASSWORD', crypt.mksalt(crypt.METHOD_MD5)))")
-                if [[ $? -eq 0 && -n "$ENCRYPTED_PASSWORD" ]]; then
-                    echo "admin:$ENCRYPTED_PASSWORD" > "$HTPASSWD_FILE"
-                    chmod 600 "$HTPASSWD_FILE"
-                    _running3 ".htpasswd created at $HTPASSWD_FILE using Python fallback"
-                    _running3 "Admin credentials - Username: admin, Password: $ADMIN_PASSWORD"
-                    echo "$(date '+%Y-%m-%d %H:%M:%S') - $DIR - Admin credentials - Username: admin, Password: $ADMIN_PASSWORD" >> "$LOG_FILE"
-                else
-                    _error "Both openssl and Python encryption methods failed"
-                    return 1
-                fi
+        _running3 "Using python3 for password encryption"            
+        # Alternative: use crypt() function via Python if available
+        if command -v python3 &> /dev/null; then
+            local ENCRYPTED_PASSWORD=$(python3 -c "import crypt; print(crypt.crypt('$ADMIN_PASSWORD', crypt.mksalt(crypt.METHOD_MD5)))")
+            if [[ $? -eq 0 && -n "$ENCRYPTED_PASSWORD" ]]; then
+                echo "admin:$ENCRYPTED_PASSWORD" > "$HTPASSWD_FILE"
+                chmod 600 "$HTPASSWD_FILE"
+                _running3 ".htpasswd created at $HTPASSWD_FILE using Python fallback"
+                _running3 "Admin credentials - Username: admin, Password: $ADMIN_PASSWORD"
+                echo "$(date '+%Y-%m-%d %H:%M:%S') - $DIR - Admin credentials - Username: admin, Password: $ADMIN_PASSWORD" >> "$LOG_FILE"
             else
-                _error "No password encryption method available (openssl failed, python3 not found)"
+                _error "Both openssl and Python encryption methods failed"
                 return 1
             fi
+        else
+            _error "No password encryption method available (openssl failed, python3 not found)"
+            return 1
         fi
     else
         _running3 ".htpasswd already exists for $DIR"
