@@ -194,10 +194,23 @@ generate_historical_report_site() {
     _running2 "Checking historical reports for $DOMAIN"
     mkdir -p "$BASE_DIR"
     
-    # -- Grab every .gz for this site
-    FILE_ARCHIVES=($(ls -1 /var/log/webserver_logs/${SITE_ID}.log-*.gz))
-    FILE_ARCHIVES+=($(ls -1 /var/log/webserver_logs_archive/${DOMAIN}.log-*.gz))
-    _debug "$FILE_ARCHIVES"
+    # -- Grab every .gz for this site from both UUID and domain-based naming
+    FILE_ARCHIVES=()
+    # Add UUID-based archives from webserver_logs
+    for file in /var/log/webserver_logs/${SITE_ID}.log-*.gz; do
+        [[ -f "$file" ]] && FILE_ARCHIVES+=("$file")
+    done
+    
+    # Add domain-based archives from webserver_logs
+    for file in /var/log/webserver_logs/${DOMAIN}.log-*.gz; do
+        [[ -f "$file" ]] && FILE_ARCHIVES+=("$file")
+    done
+    
+    # Add domain-based archives from webserver_logs_archive
+    for file in /var/log/webserver_logs_archive/${DOMAIN}.log-*.gz; do
+        [[ -f "$file" ]] && FILE_ARCHIVES+=("$file")
+    done
+    _debug "Found archives: ${FILE_ARCHIVES[*]}"
 
     # -- Count the number of archives
     local ACRHIVE_COUNT=${#FILE_ARCHIVES[@]}
