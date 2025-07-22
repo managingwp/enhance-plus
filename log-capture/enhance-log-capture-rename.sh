@@ -22,7 +22,7 @@ _warning () { echo -e "\e[1;33m${*}\e[0m"; }
 _error () { echo -e "\e[1;31m${*}\e[0m"; }
 _debug () {
     if [[ $DEBUG -eq 1 ]]; then
-        echo -e "\e[1;35mDEBUG: ${*}\e[0m"
+        echo -e "\e[1;35mDEBUG: ${*}\e[0m" >&2
     fi
 }
 _usage() {
