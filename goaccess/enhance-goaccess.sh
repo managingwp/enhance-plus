@@ -210,7 +210,7 @@ generate_historical_report_site() {
     declare -A SEEN_DATES=()
     for archive in "${FILE_ARCHIVES[@]}"; do
         _running3 "Processing archive: $archive"
-        [[ ! -f $archive ]] && continue
+        [[ ! -f $archive ]] && { continue; _running3 "File not found: $archive"; }
         filename=$(basename "$archive")
         temp="${filename#${SITE_ID}.log-}"
         temp="${temp%.gz}"
