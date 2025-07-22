@@ -284,7 +284,7 @@ generate_historical_report_site() {
 # -- Function to generate index.html for all sites
 # =====================================
 generate_index() {
-    _running2 "Generating index.html for all domains in $REPORT_DIR"
+    _running "Generating index.html for all sites in $REPORT_DIR"    
     SITES=(/var/local/enhance/appcd/*/website.json)
     for SITE_JSON_FILE in "${SITES[@]}"; do
         SITE_JSON=$(cat "$SITE_JSON_FILE")
