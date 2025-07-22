@@ -36,24 +36,63 @@ _usage() {
 }
 # =====================================
 # -- Pre-flight checks
-# ======================================
+# =====================================
 _pre_flight() {
     # -- Check if the active directory exists
     if [ ! -d "$ACTIVE_DIR" ]; then
         _error "Active directory $ACTIVE_DIR does not exist."
         exit 1
     fi
-
-    # -- Confirm command enhance-cli is installed
-    if ! command -v enhance-cli &> /dev/null; then
-        echo "enhance-cli could not be found. Please install it first."
-        exit 1
-    fi
 }
 
 # =====================================
+# -- Enhance UUID to domain mapping
+# =====================================
+_enhance_uuid_to_domain_db() {
+    # -- Get a list of all domains an UUID into an arry for use later.
+    ENHANCE_SITES=($(ls -1 /var/local/enhance/appcd/*/website.json))
+    if [ ${#ENHANCE_SITES[@]} -eq 0 ]; then
+        _warning "No enhance sites found in /var/local/enhance/appcd/*/website.json"
+        return 1
+    fi
+    # -- Process each site file to extract UUID and domain
+    for SITE in "${ENHANCE_SITES[@]}"; do
+        UUID=$(jq -r '.uuid' "$SITE")
+        DOMAIN=$(jq -r '.domain' "$SITE")
+        if [[ -z "$DOMAIN" || -z "$UUID" ]]; then
+            _warning "Invalid site file $SITE, missing UUID or domain"
+            continue
+        fi
+        # -- Store the mapping in an associative array
+        UUID_TO_DOMAIN["$UUID"]="$DOMAIN"
+    done
+    _running2 "Found ${#UUID_TO_DOMAIN[@]} UUID to domain mappings"    
+
+}
+# =====================================
+# -- _enhance_uuid_to_domain_db $UUID
+# -- Enhance UUID to domain mapping
+# =====================================
+_enhance_uuid_to_domain() {
+    UUID=$1
+    if [[ -z "$UUID" ]]; then
+        _error "UUID is required for enhance_uuid_to_domain"
+        exit 1
+    fi
+    # -- Get the domain from the UUID_TO_DOMAIN associative array
+    DOMAIN=${UUID_TO_DOMAIN[$UUID]}
+    if [[ -z "$DOMAIN" ]]; then
+        _warning "No domain found for UUID: $UUID"
+        return 1
+    fi
+    echo "$DOMAIN"
+    return 0
+}
+
+
+# =====================================
 # -- Rename log files
-# ======================================
+# =====================================
 _rename_log_files() {
     # This should be your mapping from UUID → domain
     # Ideally load from a file or a DB in production
@@ -71,6 +110,11 @@ _rename_log_files() {
         TARGET_DIR="$ACTIVE_DIR"
         _running "Renaming files in current directory: $TARGET_DIR"
     fi
+
+    # -- Get enhance UUID to domain mapping
+    declare -A UUID_TO_DOMAIN
+    _enhance_uuid_to_domain_db
+    [[ $? -ne 0 ]] && _error "Failed to get enhance UUID to domain mapping" && exit 1
 
     # -- File Format is /var/log/webserver_logs/ff5a1958-0e43-4584-8de8-466a24542582.log-20250421
     LOG_FILES=($(\ls "$ACTIVE_DIR"/*.log-* 2>/dev/null))
@@ -91,9 +135,9 @@ _rename_log_files() {
 
         # -- Get the domain from enhance-cli
         _running2 "Getting domain for UUID: $UUID"
-        DOMAIN=$(enhance-cli --quiet -c site "$UUID" 2>/dev/null)
-        if [ $? -ne 0 ]; then
-            _warning "enhance-cli get-domain failed for UUID:$UUID"
+        DOMAIN=$(_enhance_uuid_to_domain "$UUID")
+        if [[ $? -ne 0 ]]; then
+            _warning "enhance_uuid_to_domain failed for UUID:$UUID"
             continue
         fi
 
