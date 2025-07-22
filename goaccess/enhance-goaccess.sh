@@ -151,7 +151,7 @@ function _process_log_site() {
     echo "==RUN==========================================================================="
 
     # -- Cleanup
-    LOG_FILE_LINE="$(tail -n 5 $WEB_LOG_FILE)"
+    LOG_FILE_LINE="$(tail -n 2 $WEB_LOG_FILE)"
     _running2 "Last line of $WEB_LOG_FILE: $LOG_FILE_LINE"
     rm -f "$TMP_LOG"
 }
