@@ -1,5 +1,11 @@
 #!/bin/env bash
 SCRIPT_PATH=$(dirname "$(readlink -f "$0")")
+SYSTEMD_FILE="enhance-log-capture.service"
+SYSTEMD_SERVICE_NAME="enhance-log-capture.service"
+SYSTEMD_FILE_PATH="/etc/systemd/system/enhance-log-capture.service"
+LOGROTATE_FILE="enhance-log-capture.logrotate"
+LOGROTATE_FILE_PATH="/etc/logrotate.d/enhance-log-capture"
+
 [[ $EUID -ne 0 ]] && echo "Please run as root" && exit 1
 CMD="$1"
 FORCE=0
@@ -30,7 +36,7 @@ _usage() {
 }
 
 _install_service () {
-    # Create a temporary service file with the correct path
+    # Create a temporary service file with the correct path    
     sed "s|SCRIPT_PATH_PLACEHOLDER|${SCRIPT_PATH}|g" "${SCRIPT_PATH}/$SYSTEMD_FILE" > "/tmp/$(basename $SYSTEMD_FILE)"
     cp "/tmp/$(basename $SYSTEMD_FILE)" "$SYSTEMD_FILE_PATH"
     rm "/tmp/$(basename $SYSTEMD_FILE)"
@@ -62,12 +68,6 @@ _pre-flight () {
     fi    
 }
 
-_running "Installing enhance-log-capture"
-SYSTEMD_FILE="log-capture/enhance-log-capture.service"
-SYSTEMD_SERVICE_NAME="enhance-log-capture.service"
-SYSTEMD_FILE_PATH="/etc/systemd/system/enhance-log-capture.service"
-LOGROTATE_FILE="log-capture/enhance-log-capture.logrotate"
-LOGROTATE_FILE_PATH="/etc/logrotate.d/enhance-log-capture"
 
 # -- Args
 while [[ $# -gt 0 ]]; do
