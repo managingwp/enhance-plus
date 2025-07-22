@@ -91,9 +91,9 @@ function _process_logs () {
         SITE_JSON=$(cat "$SITE_JSON_FILE")
         SITE_ID=$(echo "$SITE_JSON" | jq -r '.id')
         SITE_DOMAIN=$(echo "$SITE_JSON" | jq -r '.mapped_domains[] | select(.is_primary == true).domain')
-        LOG_FILE="/var/log/webserver_logs/${SITE_ID}.log"
+        WEB_LOG_FILE="/var/log/webserver_logs/${SITE_ID}.log"
         _running "Processing log for $SITE_DOMAIN ($SITE_ID)"
-        _process_log_site "$SITE_DOMAIN" "$SITE_ID" "$LOG_FILE" "$REPORT_DIR"
+        _process_log_site "$SITE_DOMAIN" "$SITE_ID" "$WEB_LOG_FILE" "$REPORT_DIR"
         generate_index_site "$SITE_DOMAIN" "$REPORT_DIR"
     done
     generate_root_index "$REPORT_DIR"
@@ -106,7 +106,7 @@ function _process_logs () {
 function _process_log_site() {
     local DOMAIN="$1"
     local SITE_ID="$2"
-    local LOG_FILE="$3"
+    local WEB_LOG_FILE="$3"
     local BASE_DIR="$4"
     local TMP_LOG=$(mktemp)
     local DOMAIN_DIR="$BASE_DIR/$DOMAIN"
@@ -117,7 +117,7 @@ function _process_log_site() {
     [[ -d $DB_PATH ]] && RESTORE="--restore --keep-last=2" || { mkdir -p "$DB_PATH"; RESTORE="--keep-last=2"; }
     _running2 "DB_PATH: $DB_PATH"
     _running2 "RESTORE: $RESTORE"
-    _running2 "LOG_FILE: $LOG_FILE"
+    _running2 "WEB_LOG_FILE: $WEB_LOG_FILE"
 
     # -- Ensure domain-specific report directory exists
     [[ ! -d $DOMAIN_DIR ]] && mkdir -p "$DOMAIN_DIR"
@@ -131,10 +131,10 @@ function _process_log_site() {
     #LOG_LINES_TOTAL=$(wc -l < "$TMP_LOG")
     #echo -e "\t-- Total lines in log file: $LOG_LINES_TOTAL"
 
-    _running2 "Running GoAccess on the log file: $LOG_FILE"
+    _running2 "Running GoAccess on the log file: $WEB_LOG_FILE"
     GO_ACCESS_VERSION=$(goaccess --version | head -1 | awk '{print $3}')
     _running2 "GoAccess version: $GO_ACCESS_VERSION"
-    GO_ACCESS_CMD="/usr/bin/goaccess "$LOG_FILE" \
+    GO_ACCESS_CMD="/usr/bin/goaccess "$WEB_LOG_FILE" \
         --db-path="$DB_PATH" \
         $RESTORE \
         --persist \
@@ -151,8 +151,8 @@ function _process_log_site() {
     echo "==RUN==========================================================================="
 
     # -- Cleanup
-    LOG_FILE_LINE="$(tail -n 5 $LOG_FILE)"
-    _running2 "Last line of $LOG_FILE: $LOG_FILE_LINE"
+    LOG_FILE_LINE="$(tail -n 5 $WEB_LOG_FILE)"
+    _running2 "Last line of $WEB_LOG_FILE: $LOG_FILE_LINE"
     rm -f "$TMP_LOG"
 }
 
