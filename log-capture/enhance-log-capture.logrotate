@@ -13,16 +13,6 @@
     sharedscripts
     postrotate
         LOGROTATE_SCRIPT_PATH_PLACEHOLDER/enhance-log-capture-rename.sh rename
-    endscript
-}
-
-# Compress uncompressed domain-based log files (runs after main rotation)
-/dev/null {
-    hourly
-    rotate 0
-    missingok
-    nocreate
-    postrotate
         # Compress any uncompressed domain-based log files
         find /var/log/webserver_logs/ /var/log/webserver_logs_archive/ -name "*.log-[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]" -type f ! -name "*.gz" 2>/dev/null | while read -r logfile; do
             if [ -f "$logfile" ]; then
