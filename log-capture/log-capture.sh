@@ -94,6 +94,8 @@ done
 
 _pre-flight
 
+_running "Running from $SCRIPT_PATH"
+
 # -- Install
 if [[ $CMD == "install" ]]; then    
     # -- Systemd service
