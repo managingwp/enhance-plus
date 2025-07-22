@@ -113,6 +113,7 @@ function _process_log_site() {
     local OUTFILE="$DOMAIN_DIR/$DOMAIN-live.html"
     local DB_PATH="$DOMAIN_DIR/db"
     local RESTORE=""
+    local LOG_FILE_LINE
     [[ -d $DB_PATH ]] && RESTORE="--restore --keep-last=2" || { mkdir -p "$DB_PATH"; RESTORE="--keep-last=2"; }
     _running2 "DB_PATH: $DB_PATH"
     _running2 "RESTORE: $RESTORE"
