@@ -41,6 +41,7 @@ _error () { echo -e "ERROR: $*" | tee -a "$LOG_FILE"; }
 # -- Usage
 _usage () {
     echo "Usage: $0 -c <command> -d|--directory"
+    echo
     echo "Commands:"
     echo "  process             Process logs and generate GoAccess reports"
     echo "  historical          Generate historical reports from archived logs"
