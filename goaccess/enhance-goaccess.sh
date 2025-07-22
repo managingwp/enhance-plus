@@ -375,6 +375,8 @@ SHELL=/bin/bash
 PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 # Run GoAccess report generation every hour
 0 * * * * root /usr/local/bin/enhance-goaccess.sh -c process -d $REPORT_DIR >> $LOG_FILE 2>&1
+# Run historical report generation every day at midnight
+0 0 * * * root /usr/local/bin/enhance-goaccess.sh -c historical -d $REPORT_DIR >> $LOG_FILE 2>&1
 # Run index generation every hour
 0 * * * * root /usr/local/bin/enhance-goaccess.sh -c index -d $REPORT_DIR >> $LOG_FILE 2>&1
 EOF
