@@ -19,11 +19,12 @@
 # Compress uncompressed domain-based log files
 /var/log/webserver_logs_archive/*.log-[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9] /var/log/webserver_logs/*.log-[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]  {
     compress
-    rotate 0
+    rotate 1
+    size 1
     missingok
     notifempty
     nocreate
-    copytruncate
+    noolddir
 }
 
 # Delete the file when it's older than 30 days
