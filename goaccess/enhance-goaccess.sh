@@ -311,10 +311,9 @@ EOF
         
         # Create htpasswd entry using htpasswd command
         _running3 "Using htpasswd command for password encryption with generated password"
-        if command -v htpasswd &> /dev/null; then
-            set -x
+        if command -v htpasswd &> /dev/null; then            
             htpasswd -cBb "$HTPASSWD_FILE" admin $ADMIN_PASSWORD
-            set +x
+            chmod 644 "$HTPASSWD_FILE"
             if [[ $? -eq 0 ]]; then
                 chmod 600 "$HTPASSWD_FILE"
                 _running3 ".htpasswd created at $HTPASSWD_FILE"
