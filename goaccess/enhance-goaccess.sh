@@ -307,12 +307,12 @@ EOF
     if [[ ! -f "$HTPASSWD_FILE" ]]; then
         _running3 "Creating .htpasswd file for $DIR"
         # Generate random password
-        local ADMIN_PASSWORD=$(openssl rand -base64 6)
+        local ADMIN_PASSWORD=$(openssl rand -base64 12)
         
         # Create htpasswd entry using htpasswd command
-        _running3 "Using htpasswd command for password encryption and setting password $ADMIN_PASSWORD"
+        _running3 "Using htpasswd command for password encryption with generated password"
         if command -v htpasswd &> /dev/null; then
-            $(htpasswd -bcB "$HTPASSWD_FILE" admin Test12345678)
+            htpasswd -cbB "$HTPASSWD_FILE" admin "$ADMIN_PASSWORD"
             if [[ $? -eq 0 ]]; then
                 chmod 600 "$HTPASSWD_FILE"
                 _running3 ".htpasswd created at $HTPASSWD_FILE"
