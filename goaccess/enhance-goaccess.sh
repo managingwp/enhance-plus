@@ -435,7 +435,7 @@ elif [[ $MODE == "process" ]]; then
     _running "Starting GoAccess report generation for $START_DATE"
     _running "-----------------------------------------------------------"
     _process_logs
-elif [[ $MODE == "past" ]]; then
+elif [[ $MODE == "historical" ]]; then
     _running "Generating historical reports"
     generate_historical_reports
 elif [[ $MODE == "index" ]]; then
