@@ -40,7 +40,10 @@ _install_service () {
     sed "s|SCRIPT_PATH_PLACEHOLDER|${SCRIPT_PATH}|g" "${SCRIPT_PATH}/$SYSTEMD_FILE" > "/tmp/$(basename $SYSTEMD_FILE)"
     cp "/tmp/$(basename $SYSTEMD_FILE)" "$SYSTEMD_FILE_PATH"
     rm "/tmp/$(basename $SYSTEMD_FILE)"
+    _running2 "Service file created at $SYSTEMD_FILE_PATH"
+    _running2 "Reloading systemd daemon"
     sudo systemctl daemon-reload
+    _running2 "Enabling and starting service $SYSTEMD_SERVICE_NAME"
     sudo systemctl enable $SYSTEMD_SERVICE_NAME
     sudo systemctl start $SYSTEMD_SERVICE_NAME
 }
