@@ -152,7 +152,7 @@ function _process_log_site() {
 
     # -- Cleanup
     LOG_FILE_LINE="$(tail -n 5 $LOG_FILE)"
-    _running2 "Last line of log file $LOG_FILE: $LOG_FILE_LINE"
+    _running2 "Last line of $LOG_FILE: $LOG_FILE_LINE"
     rm -f "$TMP_LOG"
 }
 
