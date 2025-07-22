@@ -65,11 +65,11 @@ _enhance_uuid_to_domain_db() {
     fi
     # -- Process each site file to extract UUID and domain
     for SITE in "${ENHANCE_SITES[@]}"; do
-        UUID=$(jq -r '.uuid' "$SITE")
-        DOMAIN=$(jq -r '.domain' "$SITE")
+        UUID=$(jq -r '.id' "$SITE")
+        DOMAIN=$(jq -r '.mapped_domains[] | select(.is_primary == true) | .domain' "$SITE")
         _debug "Debug: Processing site $SITE, UUID=$UUID, DOMAIN=$DOMAIN"
         if [[ -z "$DOMAIN" || -z "$UUID" ]]; then
-            _warning "Invalid site file $SITE, missing UUID or domain"
+            _warning "Invalid site file $SITE, missing UUID or primary domain"
             continue
         fi
         # -- Store the mapping in an associative array
