@@ -10,6 +10,7 @@ DRY_RUN=0
 USE_ARCHIVE=0
 ACTIVE_DIR="/var/log/webserver_logs"
 ARCHIVE_DIR="/var/log/webserver_logs_archive"
+declare -A UUID_TO_DOMAIN
 
 # ==============================================================================
 # -- Functions
@@ -56,7 +57,6 @@ _pre_flight() {
 # =====================================
 _enhance_uuid_to_domain_db() {
     _running2 "Generating enhance UUID to domain mapping"
-    declare -A UUID_TO_DOMAIN
     # -- Get a list of all domains an UUID into an arry for use later.
     ENHANCE_SITES=($(ls -1 /var/local/enhance/appcd/*/website.json))
     if [ ${#ENHANCE_SITES[@]} -eq 0 ]; then
