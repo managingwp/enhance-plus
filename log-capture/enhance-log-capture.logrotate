@@ -12,7 +12,7 @@
     ifempty
     sharedscripts
     postrotate
-        SCRIPT_PATH_PLACEHOLDER/log-capture/enhance-log-capture-rename.sh rename
+        LOGROTATE_SCRIPT_PATH_PLACEHOLDER/log-capture/enhance-log-capture-rename.sh rename
     endscript
 }
 

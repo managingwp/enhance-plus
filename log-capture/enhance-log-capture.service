@@ -3,9 +3,10 @@ Description=Enhance Log Archiver
 After=network.target
 
 [Service]
-ExecStart=SCRIPT_PATH_PLACEHOLDER/enhance-log-capture.sh
+ExecStart=SERVICE_SCRIPT_PATH_PLACEHOLDER/enhance-log-capture.sh
 Restart=always
 User=root
 
 [Install]
-WantedBy=multi-user.target
+WantedBy=multi-user.targetription=Enhance Log Archiver
+After=network.target
