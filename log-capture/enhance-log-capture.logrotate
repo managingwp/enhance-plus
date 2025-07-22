@@ -17,7 +17,7 @@
 }
 
 # Compress uncompressed domain-based log files
-/var/log/webserver_logs_archive/*.log-[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9] {
+/var/log/webserver_logs_archive/*.log-[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9] /var/log/webserver_logs/*.log-[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]  {
     compress
     rotate 0
     missingok
@@ -27,7 +27,7 @@
 }
 
 # Delete the file when it's older than 30 days
-/var/log/webserver_logs_archive/*.gz {
+/var/log/webserver_logs_archive/*.gz /var/log/webserver_logs/*.gz {
     maxage 30
     rotate 0
     missingok
