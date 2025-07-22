@@ -67,6 +67,7 @@ _enhance_uuid_to_domain_db() {
     for SITE in "${ENHANCE_SITES[@]}"; do
         UUID=$(jq -r '.uuid' "$SITE")
         DOMAIN=$(jq -r '.domain' "$SITE")
+        _debug "Debug: Processing site $SITE, UUID=$UUID, DOMAIN=$DOMAIN"
         if [[ -z "$DOMAIN" || -z "$UUID" ]]; then
             _warning "Invalid site file $SITE, missing UUID or domain"
             continue
