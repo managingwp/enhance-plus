@@ -309,25 +309,23 @@ EOF
         # Generate random password
         local ADMIN_PASSWORD=$(openssl rand -base64 6)
         
-        # Create htpasswd entry using openssl
-        _running3 "Using openssl for password encryption"
-        local ENCRYPTED_PASSWORD=$(openssl passwd -apr1 "$ADMIN_PASSWORD" 2>/dev/null)
-        if [[ $? -eq 0 && -n "$ENCRYPTED_PASSWORD" ]]; then
-            echo "admin:$ENCRYPTED_PASSWORD" > "$HTPASSWD_FILE"
-            chmod 600 "$HTPASSWD_FILE"
-            _running3 ".htpasswd created at $HTPASSWD_FILE"
-            _running3 "Admin credentials - Username: admin, Password: $ADMIN_PASSWORD"
-            echo "$(date '+%Y-%m-%d %H:%M:%S') - $DIR - Admin credentials - Username: admin, Password: $ADMIN_PASSWORD" >> "$LOG_FILE"
+        # Create htpasswd entry using htpasswd command
+        _running3 "Using htpasswd command for password encryption"
+        if command -v htpasswd &> /dev/null; then
+            htpasswd -cB "$HTPASSWD_FILE" admin <<< "$ADMIN_PASSWORD"
+            if [[ $? -eq 0 ]]; then
+                chmod 600 "$HTPASSWD_FILE"
+                _running3 ".htpasswd created at $HTPASSWD_FILE"
+                _running3 "Admin credentials - Username: admin, Password: $ADMIN_PASSWORD"
+                echo "$(date '+%Y-%m-%d %H:%M:%S') - $DIR - Admin credentials - Username: admin, Password: $ADMIN_PASSWORD" >> "$LOG_FILE"
+            else
+                _error "htpasswd command failed"
+                return 1
+            fi
         else
-            # Fallback: use a simple base64 encoded password (less secure but works)
-            _running3 "OpenSSL failed, using base64 fallback (less secure)"
-            local ENCODED_PASSWORD=$(echo -n "$ADMIN_PASSWORD" | base64)
-            echo "admin:{BASE64}$ENCODED_PASSWORD" > "$HTPASSWD_FILE"
-            chmod 600 "$HTPASSWD_FILE"
-            _running3 ".htpasswd created at $HTPASSWD_FILE using base64 encoding"
-            _running3 "Admin credentials - Username: admin, Password: $ADMIN_PASSWORD"
-            _running3 "WARNING: Using base64 encoding - consider installing proper tools for better security"
-            echo "$(date '+%Y-%m-%d %H:%M:%S') - $DIR - Admin credentials (base64) - Username: admin, Password: $ADMIN_PASSWORD" >> "$LOG_FILE"
+            _error "htpasswd command not found. Please install apache2-utils package"
+            _running3 "Install with: sudo apt-get install apache2-utils (Ubuntu/Debian) or sudo yum install httpd-tools (CentOS/RHEL)"
+            return 1
         fi
     else
         _running3 ".htpasswd already exists for $DIR"
