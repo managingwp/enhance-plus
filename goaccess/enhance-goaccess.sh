@@ -312,10 +312,9 @@ EOF
         # Create htpasswd entry using htpasswd command
         _running3 "Using htpasswd command for password encryption with generated password"
         if command -v htpasswd &> /dev/null; then            
-            htpasswd -cBb "$HTPASSWD_FILE" admin $ADMIN_PASSWORD
-            chmod 644 "$HTPASSWD_FILE"
+            htpasswd -cBb "$HTPASSWD_FILE" admin $ADMIN_PASSWORD            
             if [[ $? -eq 0 ]]; then
-                chmod 600 "$HTPASSWD_FILE"
+                chmod 644 "$HTPASSWD_FILE"
                 _running3 ".htpasswd created at $HTPASSWD_FILE"
                 _running3 "Admin credentials - Username: admin, Password: $ADMIN_PASSWORD"
                 echo "$(date '+%Y-%m-%d %H:%M:%S') - $DIR - Admin credentials - Username: admin, Password: $ADMIN_PASSWORD" >> "$LOG_FILE"
