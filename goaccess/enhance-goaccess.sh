@@ -140,9 +140,9 @@ function _process_log_site() {
         $RESTORE \
         --persist \
         -o "$OUTFILE" \
-        --log-format='^\"%h\" \"%d\" \"%r\" \"%s\" \"%b\" \"%T\" \"%R\" \"%u\"' \
-        --date-format='%s' \
-        --time-format='%s' \
+        --log-format='^\"%h\" \"%x\" \"%r\" \"%s\" \"%b\" \"%T\" \"%R\" \"%u\"' \
+        --date-format='%f' \
+        --time-format='%f' \
         --agent-list \
         --html-refresh \
         --no-global-config"
