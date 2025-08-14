@@ -225,22 +225,20 @@ generate_historical_report_site() {
     for archive in "${FILE_ARCHIVES[@]}"; do
         _running3 "Processing archive: $archive"
         [[ ! -f $archive ]] && { _running3 "Error: File not found: $archive"; continue;  }
-        
-        #filename=$(basename "$archive")
-        #temp="${filename#${SITE_ID}.log-}"
-        #temp="${temp%.gz}"
-        #datepart="${temp%%-*}"    # YYYYMMDD
-        # File name format  test.kxwheels.com.log-20250809.gz
+        # File name format: domain.log-YYYYMMDD.gz or UUID.log-YYYYMMDD.gz
         filename=$(basename "$archive")
-        temp="${filename#${SITE_ID}.log-}" # remove prefix
-        temp="${temp%.gz}" # remove .gz suffix
-        datepart="${temp%%-*}"    # YYYYMMDD
-        _running4 "Extracted date part: $datepart from filename: $filename"
-        # only 8 digits and not today/future
-        if [[ $datepart =~ ^[0-9]{8}$ ]] && [[ $datepart -lt $TODAY_ID ]]; then        
-            SEEN_DATES[$datepart]=1
+        # Extract 8 digits after .log-
+        if [[ $filename =~ \.log-([0-9]{8})\.gz$ ]]; then
+            datepart="${BASH_REMATCH[1]}"
+            _running4 "Extracted date part: $datepart from filename: $filename"
+            # only 8 digits and not today/future
+            if [[ $datepart -lt $TODAY_ID ]]; then
+                SEEN_DATES[$datepart]=1
+            else
+                _running4 "Skipping future file: $filename"
+            fi
         else
-            _running4 "Skipping invalid/future file: $filename"
+            _running4 "Skipping invalid file (no date found): $filename"
         fi
     done
 
