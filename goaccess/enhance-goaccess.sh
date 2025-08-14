@@ -229,6 +229,7 @@ generate_historical_report_site() {
         temp="${filename#${SITE_ID}.log-}"
         temp="${temp%.gz}"
         datepart="${temp%%-*}"    # YYYYMMDD
+        _running4 "Extracted date part: $datepart from filename: $filename"
         # only 8 digits and not today/future
         if [[ $datepart =~ ^[0-9]{8}$ ]] && [[ $datepart -lt $TODAY_ID ]]; then        
             SEEN_DATES[$datepart]=1
