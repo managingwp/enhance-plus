@@ -225,9 +225,15 @@ generate_historical_report_site() {
     for archive in "${FILE_ARCHIVES[@]}"; do
         _running3 "Processing archive: $archive"
         [[ ! -f $archive ]] && { _running3 "Error: File not found: $archive"; continue;  }
+        
+        #filename=$(basename "$archive")
+        #temp="${filename#${SITE_ID}.log-}"
+        #temp="${temp%.gz}"
+        #datepart="${temp%%-*}"    # YYYYMMDD
+        # File name format  test.kxwheels.com.log-20250809.gz
         filename=$(basename "$archive")
-        temp="${filename#${SITE_ID}.log-}"
-        temp="${temp%.gz}"
+        temp="${filename#${SITE_ID}.log-}" # remove prefix
+        temp="${temp%.gz}" # remove .gz suffix
         datepart="${temp%%-*}"    # YYYYMMDD
         _running4 "Extracted date part: $datepart from filename: $filename"
         # only 8 digits and not today/future
