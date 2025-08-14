@@ -257,18 +257,19 @@ function generate_historical_report_site() {
 # ===================================
 function generate_goaccess_report_file () {
     local LOG_FILE="$1"
-    local OUTFILE="$2"         
-    # no leading ^\" here
+    local OUTFILE="$2"             
     local LOG_FORMAT='"%h" "%x" "%r" "%s" "%b" "%T" "%R" "%u"'
+    # Check if file is compressed and use zcat
+
     _running4 "Running GoAccess on $ with format: $LOG_FORMAT"
-    _running4 "/usr/bin/goaccess $LOG_FILE \
+    _running4 "zcat --force | /usr/bin/goaccess $LOG_FILE \
         --log-format=$LOG_FORMAT \
         --date-format='%s' \
         --time-format='%s' \
         --agent-list \
         --no-global-config \
         -o $OUTFILE"
-    /usr/bin/goaccess "$LOG_FILE" \
+    zcat --force | /usr/bin/goaccess "$LOG_FILE" \
         --log-format="$LOG_FORMAT" \
         --date-format='%s' \
         --time-format='%s' \
