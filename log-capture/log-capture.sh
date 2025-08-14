@@ -34,9 +34,10 @@ _usage() {
     echo "Usage: $0 <install|uninstall|logrotate>"    
     echo
     echo "Commands:"
-    echo "  install   Install the enhance-log-capture service and logrotate configuration"
-    echo "  uninstall Remove the enhance-log-capture service and logrotate configuration"
-    echo "  logrotate Install only the logrotate configuration"
+    echo "  install                 - Install the enhance-log-capture service and logrotate configuration"
+    echo "  uninstall               - Remove the enhance-log-capture service and logrotate configuration"
+    echo "  logrotate               - Install only the logrotate configuration"
+    echo "  check-logrotate         - Check the status of the logrotate, via journalctl"
     echo
     echo "Options:"
     echo "  -h, --help Show this help message"
@@ -248,6 +249,13 @@ elif [[ $CMD == "uninstall" ]]; then
 elif [[ $CMD == "logrotate" ]]; then
     _running "Installing logrotate configuration only"
     _install_logrotate_with_checks    
+elif [[ $CMD == "check-logrotate" ]]; then
+    _running "Checking logrotate status via journalctl"
+    _running2 "Use Ctrl+C to exit the log view"
+    echo
+    sudo journalctl -u logrotate -f
+# =============================================================
+# -- Invalid command
 else
     echo "Invalid command: $CMD"
     _usage
