@@ -185,7 +185,7 @@ function generate_historical_reports() {
 # -- generate_historical_report_site $SITE_ID $DOMAIN
 # -- Function to generate historical reports
 # =====================================
-generate_historical_report_site() {
+function generate_historical_report_site() {
     local SITE_ID="$1"
     local DOMAIN="$2"
     local BASE_DIR="$REPORT_DIR/$DOMAIN"
@@ -222,8 +222,6 @@ generate_historical_report_site() {
     fi
     _running3 "Found $ACRHIVE_COUNT historical archives for $SITE_ID"
 
-    # collect unique dates
-    declare -A SEEN_DATES=()
     for archive in "${FILE_ARCHIVES[@]}"; do
         _running3 "Checking archive: $archive"
         [[ ! -f $archive ]] && { _running3 "Error: File not found: $archive"; continue;  }
@@ -252,9 +250,6 @@ generate_historical_report_site() {
             _running4 "Skipping invalid file (no date found): $filename"
         fi
     done
-
-     
-    done
 }
 
 # ====================================
@@ -282,7 +277,7 @@ function generate_goaccess_report_file () {
         -o "$OUTFILE"
     if [[ $? -ne 0 ]]; then
         _error "GoAccess failed for $OUTFILE"
-        continue
+        return 1
     else
         _running4 "Report created at $OUTFILE"
     fi
