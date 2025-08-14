@@ -260,7 +260,7 @@ generate_historical_report_site() {
             continue
         fi
 
-        _running4 "Generating report for $human_date"
+        _running4 "Generating report for $human_date on $OUTFILE"
         TMP_LOG=$(mktemp)
 
         # concatenate every archive for that date, sorted by timestamp
