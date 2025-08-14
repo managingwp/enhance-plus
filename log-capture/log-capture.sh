@@ -93,7 +93,7 @@ _install_logrotate_with_checks() {
         rm -f "$TEMP_LOGROTATE"
         
         if [[ $HASH_LOGROTATE_FILE != $HASH_LOGROTATE_FILE_PATH ]]; then
-            _running2 "File $LOGROTATE_FILE_PATH exists, but the hash does not match, installing"
+            _warning "File $LOGROTATE_FILE_PATH exists, but the hash does not match, installing"
             _install_logrotate
         else
             _running2 "File $LOGROTATE_FILE_PATH exists, and the hash matches, skipping"
@@ -202,7 +202,7 @@ if [[ $CMD == "install" ]]; then
         rm -f "$TEMP_SYSTEMD"
         
         if [[ $HASH_SYSTEMD_FILE != $HASH_SYSTEMD_FILE_PATH ]]; then
-            _running2 "File $SYSTEMD_FILE_PATH exists, but the hash does not match, installing"
+            _warning "File $SYSTEMD_FILE_PATH exists, but the hash does not match, installing"
             _install_service
         else
             _running2 "File $SYSTEMD_FILE_PATH exists, and the hash matches, skipping to next step"
