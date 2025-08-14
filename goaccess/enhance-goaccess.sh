@@ -225,7 +225,7 @@ generate_historical_report_site() {
     # collect unique dates
     declare -A SEEN_DATES=()
     for archive in "${FILE_ARCHIVES[@]}"; do
-        _running3 "Processing archive: $archive"
+        _running3 "Checking archive: $archive"
         [[ ! -f $archive ]] && { _running3 "Error: File not found: $archive"; continue;  }
         # File name format: domain.log-YYYYMMDD.gz or UUID.log-YYYYMMDD.gz
         filename=$(basename "$archive")
@@ -234,8 +234,17 @@ generate_historical_report_site() {
             datepart="${BASH_REMATCH[1]}"
             _running4 "Extracted date part: $datepart from filename: $filename"
             # only 8 digits and not today/future
-            if [[ $datepart -lt $TODAY_ID ]]; then
-                SEEN_DATES[$datepart]=1
+            if [[ $datepart -lt $TODAY_ID ]]; then                
+                _running4 "Archive $archive has datepart: $datepart eligible for processing"
+                if ! human_date=$(date -d "$datepart" +%Y-%m-%d 2>/dev/null); then
+                    _running4 "Invalid date token: $datepart"
+                    continue
+                fi
+                OUTFILE="$BASE_DIR/$DOMAIN-$human_date.html"
+                # <-- bail if we already made it
+                [[ -f $OUTFILE ]] && _running4 "Report exists, skipping: $OUTFILE" && continue
+                _running4 "Generating report for $human_date on $OUTFILE"                             
+                generate_goaccess_report_file "$archive" "$OUTFILE"
             else
                 _running4 "Skipping future file: $filename"
             fi
@@ -244,46 +253,41 @@ generate_historical_report_site() {
         fi
     done
 
-    # now generate one report per date
-    for datepart in "${!SEEN_DATES[@]}"; do
-        # convert to human YYYY-MM-DD
-        if ! human_date=$(date -d "$datepart" +%Y-%m-%d 2>/dev/null); then
-            _running4 "Invalid date token: $datepart"
-            continue
-        fi
-
-        OUTFILE="$BASE_DIR/$DOMAIN-$human_date.html"
-
-        # <-- bail if we already made it
-        if [[ -f $OUTFILE ]]; then
-            _running4 "Report exists, skipping: $OUTFILE"
-            continue
-        fi
-
-        _running4 "Generating report for $human_date on $OUTFILE"
-        TMP_LOG=$(mktemp)
-
-        # no leading ^\" here
-        local LOG_FORMAT='"%h" "%x" "%r" "%s" "%b" "%T" "%R" "%u"'
-        _running4 "Running GoAccess on $TMP_LOG with format: $LOG_FORMAT"
-        _running4 "/usr/bin/goaccess $TMP_LOG \
-            --log-format=$LOG_FORMAT \
-            --date-format='%s' \
-            --time-format='%s' \
-            --agent-list \
-            --no-global-config \
-            -o $OUTFILE"
-        /usr/bin/goaccess "$TMP_LOG" \
-            --log-format="$LOG_FORMAT" \
-            --date-format='%s' \
-            --time-format='%s' \
-            --agent-list \
-            --no-global-config \
-            -o "$OUTFILE"
-
-        rm -f "$TMP_LOG"
+     
     done
 }
+
+# ====================================
+# -- generate_goaccess_report_file $LOG_FILE $OUTFILE
+# ===================================
+function generate_goaccess_report_file () {
+    local LOG_FILE="$1"
+    local OUTFILE="$2"         
+    # no leading ^\" here
+    local LOG_FORMAT='"%h" "%x" "%r" "%s" "%b" "%T" "%R" "%u"'
+    _running4 "Running GoAccess on $ with format: $LOG_FORMAT"
+    _running4 "/usr/bin/goaccess $LOG_FILE \
+        --log-format=$LOG_FORMAT \
+        --date-format='%s' \
+        --time-format='%s' \
+        --agent-list \
+        --no-global-config \
+        -o $OUTFILE"
+    /usr/bin/goaccess "$LOG_FILE" \
+        --log-format="$LOG_FORMAT" \
+        --date-format='%s' \
+        --time-format='%s' \
+        --agent-list \
+        --no-global-config \
+        -o "$OUTFILE"
+    if [[ $? -ne 0 ]]; then
+        _error "GoAccess failed for $OUTFILE"
+        continue
+    else
+        _running4 "Report created at $OUTFILE"
+    fi
+}
+
 
 # =====================================
 # -- generate_htaccess_protection $DIR
