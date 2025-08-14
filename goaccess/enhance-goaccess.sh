@@ -263,13 +263,6 @@ generate_historical_report_site() {
         _running4 "Generating report for $human_date on $OUTFILE"
         TMP_LOG=$(mktemp)
 
-        # concatenate every archive for that date, sorted by timestamp
-        for f in /var/log/webserver_logs/${SITE_ID}.log-${datepart}*.gz; do
-            _running4 ">>>> Found archive: $f"
-            [[ -f $f ]] || continue
-            zcat "$f" >> "$TMP_LOG"
-        done
-
         # no leading ^\" here
         local LOG_FORMAT='"%h" "%x" "%r" "%s" "%b" "%T" "%R" "%u"'
         _running4 "Running GoAccess on $TMP_LOG with format: $LOG_FORMAT"
