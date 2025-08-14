@@ -447,17 +447,23 @@ _install_cron() {
         _running2 "Cron file already exists, removing old one"
         sudo rm -f "$CRON_FILE"
     fi
-    # Create the cron job file
+
+    # Detect the absolute path to this script
+    local SCRIPT_PATH
+    SCRIPT_PATH="$(readlink -f "$0")"
+    _running2 "Detected script path: $SCRIPT_PATH"
+
+    # Create the cron job file with the detected script path
     CRON_FILE_CONTENTS=$(cat <<EOF
 # Cron job for GoAccess report generation
 SHELL=/bin/bash
 PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 # Run GoAccess report generation every hour
-0 * * * * root /usr/local/bin/enhance-goaccess.sh -c process -d $REPORT_DIR >> $LOG_FILE 2>&1
+0 * * * * root $SCRIPT_PATH -c process -d $REPORT_DIR >> $LOG_FILE 2>&1
 # Run historical report generation every day at midnight
-0 0 * * * root /usr/local/bin/enhance-goaccess.sh -c historical -d $REPORT_DIR >> $LOG_FILE 2>&1
+0 0 * * * root $SCRIPT_PATH -c historical -d $REPORT_DIR >> $LOG_FILE 2>&1
 # Run index generation every hour
-0 * * * * root /usr/local/bin/enhance-goaccess.sh -c index -d $REPORT_DIR >> $LOG_FILE 2>&1
+0 * * * * root $SCRIPT_PATH -c index -d $REPORT_DIR >> $LOG_FILE 2>&1
 EOF
     )
     _running2 "Cron job installed in $CRON_FILE"    
