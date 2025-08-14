@@ -173,6 +173,7 @@ function generate_historical_reports() {
         SITE_ID=$(echo "$SITE_JSON" | jq -r '.id')
         SITE_DOMAIN=$(echo "$SITE_JSON" | jq -r '.mapped_domains[] | select(.is_primary == true).domain')
         _running2 "Generating historical reports for $SITE_DOMAIN ($SITE_ID)"
+        _running2 "======================================================="
         generate_historical_report_site "$SITE_ID" "$SITE_DOMAIN"
         generate_index_site "$SITE_DOMAIN" "$REPORT_DIR"
     done
