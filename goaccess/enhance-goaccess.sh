@@ -262,14 +262,14 @@ function generate_goaccess_report_file () {
     # Check if file is compressed and use zcat
 
     _running4 "Running GoAccess on $ with format: $LOG_FORMAT"
-    _running4 "zcat --force | /usr/bin/goaccess $LOG_FILE \
+    _running4 "zcat --force $LOG_FILE | /usr/bin/goaccess \
         --log-format=$LOG_FORMAT \
         --date-format='%s' \
         --time-format='%s' \
         --agent-list \
         --no-global-config \
         -o $OUTFILE"
-    zcat --force | /usr/bin/goaccess "$LOG_FILE" \
+    zcat "$LOG_FILE" --force | /usr/bin/goaccess \
         --log-format="$LOG_FORMAT" \
         --date-format='%s' \
         --time-format='%s' \
