@@ -5,12 +5,14 @@
 # =============================================================================
 # -- Variables
 # =============================================================================
+VERSION="$(cat "$(dirname "$(readlink -f "$0")")/VERSION")"
 SCRIPT_PATH=$(dirname "$(readlink -f "$0")")
 SYSTEMD_FILE="enhance-log-capture.service"
 SYSTEMD_SERVICE_NAME="enhance-log-capture.service"
 SYSTEMD_FILE_PATH="/etc/systemd/system/enhance-log-capture.service"
 LOGROTATE_FILE="enhance-log-capture.logrotate"
 LOGROTATE_FILE_PATH="/etc/logrotate.d/enhance-log-capture"
+
 
 [[ $EUID -ne 0 ]] && echo "Please run as root" && exit 1
 CMD="$1"
@@ -29,8 +31,7 @@ _error () { echo -e "\e[1;31m${*}\e[0m"; }
 # =====================================
 # -- Usage
 # =====================================
-_usage() {
-    echo "Invalid argument: $CMD"
+_usage() {    
     echo "Usage: $0 <install|uninstall|logrotate>"    
     echo
     echo "Commands:"
@@ -46,6 +47,8 @@ _usage() {
     echo "Examples:"
     echo "  $0 install    # Install both service and logrotate"
     echo "  $0 logrotate  # Install only logrotate configuration"
+    echo
+    echo "Version: $VERSION"
     exit 1
 }
 

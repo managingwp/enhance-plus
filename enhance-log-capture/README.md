@@ -1,5 +1,6 @@
-# log-capture
+# enhance-log-capture
 Retain and rotate web server log files on the enhance platform. Why? If a site is attacked or there is a sudden change in resource usage, the web server logs can be invaluable in diagnosing the issue.
+
 * Utilizes systemd and a bash script with inotifywait to capture logs before they're truncated to /var/log/webserver_logs
 * Utilizes logrotate to compress and move logs to /var/log/webserver_logs_archive
 
@@ -12,21 +13,21 @@ This is an example install. You will want to be logged in as root.
 1. `mkdir -p $HOME/bin;cd $HOME/bin`
 2. `git clone https://github.com/managingwp/enhance-plus.git`
 3. `cd enhance-plus`
-4. `./log-capture.sh install`
+4. `./enhance-log-capture.sh install`
 
 ## Usage
 ```bash
 # Install both service and logrotate configuration
-./log-capture.sh install
+./enhance-log-capture.sh install
 
-# Install only logrotate configuration (without monitoring service)
-./log-capture.sh logrotate
+# Install only logrotate configuration (without monitoring service)s
+./enhance-log-capture.sh logrotate
 
 # Uninstall everything
-./log-capture.sh uninstall
+./enhance-log-capture.sh uninstall
 
 # Force reinstall
-./log-capture.sh install -f
+./enhance-log-capture.sh install -f
 ```
 
 ## Monitoring and Troubleshooting

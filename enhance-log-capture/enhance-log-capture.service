@@ -1,0 +1,11 @@
+[Unit]
+Description=Enhance Log Archiver
+After=network.target
+
+[Service]
+ExecStart=SERVICE_SCRIPT_PATH_PLACEHOLDER/enhance-log-capture-inotify.sh
+Restart=always
+User=root
+
+[Install]
+WantedBy=multi-user.target

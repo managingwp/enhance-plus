@@ -1,0 +1,16 @@
+# Rotate Hourly
+/var/log/webserver_logs/*.log {
+    size 1G
+    compress
+    rotate 30
+    missingok
+    notifempty
+    nocreate
+    ifempty
+    sharedscripts
+    dateext
+    dateformat -%Y%m%d%-%H
+    postrotate
+        /usr/local/sbin/enhance-plus/enhance-log-capture/enhance-log-capture-rename.sh rename
+    endscript
+}
