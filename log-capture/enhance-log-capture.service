@@ -3,7 +3,7 @@ Description=Enhance Log Archiver
 After=network.target
 
 [Service]
-ExecStart=/root/bin/enhance-log-capture/enhance-log-capture.sh
+ExecStart=SERVICE_SCRIPT_PATH_PLACEHOLDER/enhance-log-capture.sh
 Restart=always
 User=root
 

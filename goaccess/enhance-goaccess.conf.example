@@ -1,0 +1,9 @@
+# enhance-goaccess.conf - Configuration file for GoAccess report generation
+# Copy this file to /etc/enhance-goaccess.conf or ./enhance-goaccess.conf
+
+# Directory where GoAccess reports will be stored
+# This directory should be writable by the user running the script
+REPORT_DIR="/var/local/enhance/goaccess_reports"
+
+# Optional: Log file location (defaults to /var/log/enhance-goaccess-report.log)
+# LOG_FILE="/var/log/enhance-goaccess-report.log"

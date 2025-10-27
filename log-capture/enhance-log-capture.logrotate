@@ -12,12 +12,21 @@
     ifempty
     sharedscripts
     postrotate
-        /root/bin/enhance-log-capture/enhance-log-capture-rename.sh rename
+        LOGROTATE_SCRIPT_PATH_PLACEHOLDER/enhance-log-capture-rename.sh rename
+        echo "== Starting log rotation $(date '+%F %T') ==" >> /var/log/webserver_logs/rotation.log
+        # Compress any uncompressed domain-based log files
+        find /var/log/webserver_logs/ /var/log/webserver_logs_archive/ -name "*.log-[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]" -type f ! -name "*.gz" 2>/dev/null | while read -r logfile; do
+            if [ -f "$logfile" ]; then
+                echo "  - Found log not compressed $logfile, compressing" >> /var/log/webserver_logs/rotation.log
+                gzip "$logfile"
+            fi
+        done
+        echo "== End log rotation $(date '+%F %T') ==" >> /var/log/webserver_logs/rotation.log
     endscript
 }
 
 # Delete the file when it's older than 30 days
-/var/log/webserver_logs_archive/*.gz {
+/var/log/webserver_logs_archive/*.gz /var/log/webserver_logs/*.gz {
     maxage 30
     rotate 0
     missingok
