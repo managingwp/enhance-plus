@@ -5,7 +5,7 @@
 # =============================================================================
 # -- Variables
 # =============================================================================
-VERSION="$(cat "$(dirname "$(readlink -f "$0")")/VERSION")"
+VERSION="$(cat "$(dirname "$(readlink -f "$0")")/../VERSION")"
 SCRIPT_PATH=$(dirname "$(readlink -f "$0")")
 SYSTEMD_FILE="enhance-log-capture.service"
 SYSTEMD_SERVICE_NAME="enhance-log-capture.service"
@@ -63,9 +63,16 @@ _install_service () {
     _running2 "Service file created at $SYSTEMD_FILE_PATH"
     _running2 "Reloading systemd daemon"
     sudo systemctl daemon-reload
-    _running2 "Enabling and starting service $SYSTEMD_SERVICE_NAME"
-    sudo systemctl enable $SYSTEMD_SERVICE_NAME
-    sudo systemctl start $SYSTEMD_SERVICE_NAME
+    _running2 "Enabling service $SYSTEMD_SERVICE_NAME"
+    sudo systemctl enable "$SYSTEMD_SERVICE_NAME"
+    # If the service is already active, restart to apply unit changes; otherwise start it
+    if systemctl is-active --quiet "$SYSTEMD_SERVICE_NAME"; then
+        _running2 "Service is active; restarting $SYSTEMD_SERVICE_NAME to apply changes"
+        sudo systemctl restart "$SYSTEMD_SERVICE_NAME"
+    else
+        _running2 "Starting service $SYSTEMD_SERVICE_NAME"
+        sudo systemctl start "$SYSTEMD_SERVICE_NAME"
+    fi
 }
 
 # =======================================
@@ -96,7 +103,7 @@ _install_logrotate_with_checks() {
         HASH_LOGROTATE_FILE_PATH=$(md5sum "$LOGROTATE_FILE_PATH" | awk '{print $1}')
         rm -f "$TEMP_LOGROTATE"
         
-        if [[ $HASH_LOGROTATE_FILE != $HASH_LOGROTATE_FILE_PATH ]]; then
+        if [[ "$HASH_LOGROTATE_FILE" != "$HASH_LOGROTATE_FILE_PATH" ]]; then
             _warning "File $LOGROTATE_FILE_PATH exists, but the hash does not match, installing"
             _install_logrotate
         else
@@ -205,7 +212,7 @@ if [[ $CMD == "install" ]]; then
         HASH_SYSTEMD_FILE_PATH=$(md5sum "$SYSTEMD_FILE_PATH" | awk '{print $1}')
         rm -f "$TEMP_SYSTEMD"
         
-        if [[ $HASH_SYSTEMD_FILE != $HASH_SYSTEMD_FILE_PATH ]]; then
+        if [[ "$HASH_SYSTEMD_FILE" != "$HASH_SYSTEMD_FILE_PATH" ]]; then
             _warning "File $SYSTEMD_FILE_PATH exists, but the hash does not match, installing"
             _install_service
         else

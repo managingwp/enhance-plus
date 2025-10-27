@@ -48,10 +48,3 @@ ls -la /var/log/webserver_logs/          # Archive logs
 ls -la /var/log/webserver_logs_archive/  # Rotated logs
 ls -la /var/local/enhance/webserver_logs/ # Source logs (monitored)
 ```
-
-# cron for enhance-goaccess-report.sh
-```
-PATH=/bin:/usr/bin:/sbin:/usr/sbin
-*/15 * * * * root /root/lmt-managed-host/bin/enhance-goaccess-report.sh -d /var/www/df946ed5-d801-4e1e-9fb0-0f664e546e88/public_html -m process
-0 * * * * root /root/lmt-managed-host/bin/enhance-goaccess-report.sh -d /var/www/df946ed5-d801-4e1e-9fb0-0f664e546e88/public_html -m past
-```
