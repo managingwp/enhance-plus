@@ -10,7 +10,7 @@ Retain and rotate web server log files on the enhance platform. Why? If a site i
 
 # Install
 This is an example install. You will want to be logged in as root.
-1. `mkdir -p $HOME/bin;cd $HOME/bin`
+1. `cd /usr/local/sbin`
 2. `git clone https://github.com/managingwp/enhance-plus.git`
 3. `cd enhance-plus`
 4. `./log-capture.sh install`
