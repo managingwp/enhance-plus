@@ -1,6 +1,6 @@
 # Tasks
 
-## Default log file location versus >> to a log file via crontab
+## 1 - Default log file location versus >> to a log file via crontab
 * The following is the default cronjob setup, but we should be logging within our script to a default location that can be overriden via command line argument such as --logdir or similar.
 * The log files should have time stamps for each line for easier debugging. Such as [YYYY-MM-DD HH:MM:SS] format.
 

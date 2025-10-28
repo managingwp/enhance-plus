@@ -29,6 +29,83 @@ _warning () { echo -e "\e[1;33m${*}\e[0m"; }
 _error () { echo -e "\e[1;31m${*}\e[0m"; }
 
 # =====================================
+# -- Git helper to update parent repo
+# =====================================
+_ensure_parent_repo_up_to_date () {
+    local REPO_DIR
+    REPO_DIR="$(readlink -f "${SCRIPT_PATH}/..")"
+
+    # If git not available or no repo at parent, skip silently
+    if ! command -v git &>/dev/null; then
+        _running2 "git not found; skipping repository update check"
+        return 0
+    fi
+    if [[ ! -d "${REPO_DIR}/.git" ]]; then
+        _running2 "No git repository detected at ${REPO_DIR}; skipping repository update check"
+        return 0
+    fi
+
+    # Execute git as invoking user when running under sudo, to avoid changing ownerships
+    _git_exec () {
+        if [[ -n "${SUDO_USER}" ]]; then
+            sudo -u "${SUDO_USER}" git -C "${REPO_DIR}" "$@"
+        else
+            git -C "${REPO_DIR}" "$@"
+        fi
+    }
+
+    _running "Checking parent git repo at ${REPO_DIR}"
+
+    # Ensure a remote tracking branch exists
+    local UPSTREAM
+    UPSTREAM=$(_git_exec rev-parse --abbrev-ref "@{u}" 2>/dev/null)
+    if [[ -z "${UPSTREAM}" ]]; then
+        _warning "No upstream configured for current branch; skipping auto-update"
+        return 0
+    fi
+
+    # If working tree is dirty, do not modify automatically
+    if [[ -n "$(_git_exec status --porcelain)" ]]; then
+        _warning "Working tree has local changes; skipping auto-update"
+        return 0
+    fi
+
+    # Fetch latest
+    _running2 "Fetching latest from remote (${UPSTREAM})"
+    if ! _git_exec fetch --prune --quiet; then
+        _warning "git fetch failed; skipping auto-update"
+        return 0
+    fi
+
+    # Compare HEAD with upstream
+    local LOCAL REMOTE BASE
+    LOCAL=$(_git_exec rev-parse @ 2>/dev/null)
+    REMOTE=$(_git_exec rev-parse "@{u}" 2>/dev/null)
+    BASE=$(_git_exec merge-base @ "@{u}" 2>/dev/null)
+
+    if [[ -z "$LOCAL" || -z "$REMOTE" || -z "$BASE" ]]; then
+        _warning "Unable to compare with upstream; skipping auto-update"
+        return 0
+    fi
+
+    if [[ "$LOCAL" == "$REMOTE" ]]; then
+        _running2 "Repository is up to date"
+        return 0
+    elif [[ "$LOCAL" == "$BASE" ]]; then
+        _running2 "Repository is behind; pulling latest (ff-only)"
+        if _git_exec pull --ff-only --quiet; then
+            _success "Repository updated"
+        else
+            _warning "git pull failed; please update manually"
+        fi
+    elif [[ "$REMOTE" == "$BASE" ]]; then
+        _warning "Local repository is ahead of remote; not modifying"
+    else
+        _warning "Local and remote have diverged; not modifying"
+    fi
+}
+
+# =====================================
 # -- Usage
 # =====================================
 _usage() {    
@@ -196,6 +273,9 @@ _running "Running from $SCRIPT_PATH"
 # -- Install
 # =============================================================
 if [[ $CMD == "install" ]]; then    
+    # -- Ensure parent git repository is up to date
+    _ensure_parent_repo_up_to_date
+
     # -- Systemd service
     _running "Installing systemd service"
     if [[ ! -f $SYSTEMD_FILE_PATH ]]; then
@@ -222,6 +302,10 @@ if [[ $CMD == "install" ]]; then
     
     # -- Logrotate configuration
     _install_logrotate_with_checks
+
+    # -- Always restart service on install to pick up latest scripts/config
+    _running "Restarting service $SYSTEMD_SERVICE_NAME (always on install)"
+    sudo systemctl restart "$SYSTEMD_SERVICE_NAME"
 
     _success "* Installation complete *"
     echo

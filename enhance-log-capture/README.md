@@ -33,18 +33,21 @@ This is an example install. You will want to be logged in as root.
 ## Monitoring and Troubleshooting
 After installation, use these commands to monitor the service:
 
-```bash
-# Check service status
-sudo systemctl status enhance-log-capture.service
+1.  Check service status
+```sudo systemctl status enhance-log-capture.service```
 
-# View live service logs
-sudo journalctl -u enhance-log-capture.service -f
+2. View live service logs
+```sudo journalctl -u enhance-log-capture.service -f```
 
-# Check if service is running
-sudo systemctl is-active enhance-log-capture.service
+3. Check if service is running
+```sudo systemctl is-active enhance-log-capture.service```
 
-# View log file locations
-ls -la /var/log/webserver_logs/          # Archive logs
-ls -la /var/log/webserver_logs_archive/  # Rotated logs
+4. View log file locations
+```
+ls -la /var/log/webserver_logs/          # Rotated logs
+ls -la /var/log/webserver_logs_archive/  # Archive logs
 ls -la /var/local/enhance/webserver_logs/ # Source logs (monitored)
 ```
+
+5. Test logrotate configuration
+```sudo logrotate -d /etc/logrotate.d/enhance-log-capture```
