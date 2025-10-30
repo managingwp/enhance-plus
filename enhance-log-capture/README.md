@@ -29,8 +29,38 @@ nano enhance-log-capture.conf
 Available configuration options:
 - `ACTIVE_DIR` - Directory where active log files are stored (default: `/var/log/webserver_logs`)
 - `ARCHIVE_DIR` - Directory where archived/rotated log files are stored (default: `/var/log/webserver_logs_archive`)
+- `LOG_RENAME` - Enable or disable logging of rename operations (default: `1` = enabled, `0` = disabled)
+- `SYMLINK_ENABLE` - Enable or disable symlink creation from domain names to UUID log files (default: `0` = disabled, `1` = enabled)
 
 **Note:** The `enhance-log-capture.conf` file is Git-ignored, so your local configuration won't be committed to the repository.
+
+### Symlink Feature
+When `SYMLINK_ENABLE=1` is set in the configuration, the script will automatically create symlinks from human-readable domain names to UUID-based log files. This makes it much easier to locate and access log files for specific domains.
+
+**Example:**
+```bash
+# Enable symlinks in configuration
+echo "SYMLINK_ENABLE=1" >> enhance-log-capture.conf
+
+# The script will create symlinks like:
+# example.com.log -> e2b4585e-b25d-4e05-b93f-4f2edcd81a35.log
+# testsite.org.log -> ff5a1958-0e43-4584-8de8-466a24542582.log
+```
+
+**Benefits:**
+- Easy to find logs by domain name without looking up UUIDs
+- Works with existing tools and scripts
+- Symlinks are automatically managed and updated
+- Minimal overhead and disk space usage
+
+**Testing:**
+```bash
+# Test symlink creation in dry-run mode
+./enhance-log-capture-rename.sh dryrun
+
+# Create symlinks for real
+./enhance-log-capture-rename.sh rename
+```
 
 ## Usage
 ```bash
