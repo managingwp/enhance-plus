@@ -15,6 +15,23 @@ This is an example install. You will want to be logged in as root.
 3. `cd enhance-plus/enhance-log-capture`
 4. `./enhance-log-capture.sh install`
 
+## Configuration
+You can customize the log directories by creating a configuration file:
+
+```bash
+# Copy the example configuration
+cp enhance-log-capture.conf.example enhance-log-capture.conf
+
+# Edit the configuration file to customize directories
+nano enhance-log-capture.conf
+```
+
+Available configuration options:
+- `ACTIVE_DIR` - Directory where active log files are stored (default: `/var/log/webserver_logs`)
+- `ARCHIVE_DIR` - Directory where archived/rotated log files are stored (default: `/var/log/webserver_logs_archive`)
+
+**Note:** The `enhance-log-capture.conf` file is git-ignored, so your local configuration won't be committed to the repository.
+
 ## Usage
 ```bash
 # Install both service and logrotate configuration
