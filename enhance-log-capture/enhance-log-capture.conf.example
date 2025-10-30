@@ -1,0 +1,9 @@
+# enhance-log-capture configuration file
+# Copy this file to enhance-log-capture.conf and customize as needed
+# Configuration file should be placed in the same directory as enhance-log-capture-rename.sh
+
+# Directory where active log files are stored (default: /var/log/webserver_logs)
+ACTIVE_DIR="/var/log/webserver_logs"
+
+# Directory where archived/rotated log files are stored (default: /var/log/webserver_logs_archive)
+ARCHIVE_DIR="/var/log/webserver_logs_archive"
