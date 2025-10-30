@@ -30,7 +30,7 @@ Available configuration options:
 - `ACTIVE_DIR` - Directory where active log files are stored (default: `/var/log/webserver_logs`)
 - `ARCHIVE_DIR` - Directory where archived/rotated log files are stored (default: `/var/log/webserver_logs_archive`)
 
-**Note:** The `enhance-log-capture.conf` file is git-ignored, so your local configuration won't be committed to the repository.
+**Note:** The `enhance-log-capture.conf` file is Git-ignored, so your local configuration won't be committed to the repository.
 
 ## Usage
 ```bash
