@@ -7,3 +7,7 @@ ACTIVE_DIR="/var/log/webserver_logs"
 
 # Directory where archived/rotated log files are stored (default: /var/log/webserver_logs_archive)
 ARCHIVE_DIR="/var/log/webserver_logs_archive"
+
+# Enable or disable logging of rename operations (default: 1 = enabled, 0 = disabled)
+# Logs are written to $ACTIVE_DIR/rename.run
+LOG_RENAME=1
