@@ -8,6 +8,7 @@ MODE=""
 DEBUG=0
 DRY_RUN=0
 USE_ARCHIVE=0
+ARCHIVE_ENABLE=0
 LOG_RENAME=1
 SYMLINK_ENABLE=0
 ACTIVE_DIR="/var/log/webserver_logs"
@@ -23,6 +24,11 @@ CONFIG_FILE="${SCRIPT_DIR}/enhance-log-capture.conf"
 if [[ -f "$CONFIG_FILE" ]]; then
     # Source the configuration file to override default values
     source "$CONFIG_FILE"
+fi
+
+# Apply ARCHIVE_ENABLE from config to USE_ARCHIVE if ARCHIVE_ENABLE is set to 1
+if [[ $ARCHIVE_ENABLE -eq 1 ]]; then
+    USE_ARCHIVE=1
 fi
 
 # ==============================================================================
