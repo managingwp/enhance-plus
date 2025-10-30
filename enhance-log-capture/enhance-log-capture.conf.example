@@ -8,7 +8,7 @@ ACTIVE_DIR="/var/log/webserver_logs"
 # Directory where archived/rotated log files are stored (default: /var/log/webserver_logs_archive)
 ARCHIVE_DIR="/var/log/webserver_logs_archive"
 
-# Enable or disable moving compressed files to archive directory (default: 0 = disabled, 1 = enabled)
+# Enable or disable moving rotated files to archive directory (default: 0 = disabled, 1 = enabled)
 # When enabled (1), files are moved to ARCHIVE_DIR after rotation
 # When disabled (0), files remain in ACTIVE_DIR after rotation
 ARCHIVE_ENABLE=0

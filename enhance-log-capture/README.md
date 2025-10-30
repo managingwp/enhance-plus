@@ -29,7 +29,7 @@ nano enhance-log-capture.conf
 Available configuration options:
 - `ACTIVE_DIR` - Directory where active log files are stored (default: `/var/log/webserver_logs`)
 - `ARCHIVE_DIR` - Directory where archived/rotated log files are stored (default: `/var/log/webserver_logs_archive`)
-- `ARCHIVE_ENABLE` - Enable or disable moving compressed files to archive directory (default: `0` = disabled, `1` = enabled). When enabled, rotated log files are moved to `ARCHIVE_DIR` after compression. When disabled, files remain in `ACTIVE_DIR`.
+- `ARCHIVE_ENABLE` - Enable or disable moving rotated files to archive directory (default: `0` = disabled, `1` = enabled). When enabled, rotated log files are moved to `ARCHIVE_DIR` after rotation. When disabled, files remain in `ACTIVE_DIR`.
 - `LOG_RENAME` - Enable or disable logging of rename operations (default: `1` = enabled, `0` = disabled)
 - `SYMLINK_ENABLE` - Enable or disable symlink creation from domain names to UUID log files (default: `0` = disabled, `1` = enabled)
 

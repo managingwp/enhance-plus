@@ -14,6 +14,8 @@ SYMLINK_ENABLE=0
 ACTIVE_DIR="/var/log/webserver_logs"
 ARCHIVE_DIR="/var/log/webserver_logs_archive"
 declare -A UUID_TO_DOMAIN
+declare -A UUID_TO_SITEFILE
+SHOW_DETAILS=0
 
 # =============================================================================
 # -- Load Configuration
@@ -54,7 +56,7 @@ _log_action() {
     fi
 }
 _usage() {
-    echo "Usage: $0 <rename|dryrun> [-a]"
+    echo "Usage: $0 <rename|dryrun> [-a] [-s] [-d]"
     echo
     echo "Commands:"
     echo "  rename   Rename and archive log files based on UUID to domain mapping"
@@ -62,6 +64,8 @@ _usage() {
     echo
     echo "Options:"
     echo "  -a       Move files to archive directory (default: rename in current directory)"
+    echo "  -s       Show per-file parsing details (source, UUID, domain, date, destination)"
+    echo "  -d       Debug mode (verbose internal logs)"
     echo
     echo "Examples:"
     echo "  $0 rename        # Rename files in current directory"
@@ -100,8 +104,9 @@ _enhance_uuid_to_domain_db() {
             _warning "Invalid site file $SITE, missing UUID or primary domain"
             continue
         fi
-        # -- Store the mapping in an associative array
+        # -- Store the mapping in an associative array (and remember source file)
         UUID_TO_DOMAIN["$UUID"]="$DOMAIN"
+        UUID_TO_SITEFILE["$UUID"]="$SITE"
     done
     _running2 "Found ${#UUID_TO_DOMAIN[@]} UUID to domain mappings"
 }
@@ -274,16 +279,43 @@ _rename_log_files() {
     _enhance_uuid_to_domain_db
     [[ $? -ne 0 ]] && _error "Failed to get enhance UUID to domain mapping" && exit 1
 
-    # -- File Format is /var/log/webserver_logs/ff5a1958-0e43-4584-8de8-466a24542582.log-20250421
-    LOG_FILES=($(\ls "$ACTIVE_DIR"/*.log-* 2>/dev/null))
-    # -- Count logfiles to process into variable
+    # -- Candidate files: *.log-*
+    ALL_FILES=($(\ls "$ACTIVE_DIR"/*.log-* 2>/dev/null))
+    ALL_COUNT=${#ALL_FILES[@]}
+
+    # -- Filter to UUID-based, non-gz files only
+    LOG_FILES=()
+    SKIPPED_NON_UUID=0
+    SKIPPED_GZ=0
+    UUID_REGEX='^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
+    for FILE in "${ALL_FILES[@]}"; do
+        FILENAME=$(basename "$FILE")
+        PREFIX=${FILENAME%%.log-*}
+        # ignore compressed archives (ends with .gz)
+        if [[ "$FILENAME" == *.gz ]]; then
+            ((SKIPPED_GZ++))
+            if [[ $SHOW_DETAILS -eq 1 ]]; then
+                _running2 "Skip (gz): $FILENAME"
+            fi
+            continue
+        fi
+        if [[ "$PREFIX" =~ $UUID_REGEX ]]; then
+            LOG_FILES+=("$FILE")
+        else
+            ((SKIPPED_NON_UUID++))
+            if [[ $SHOW_DETAILS -eq 1 ]]; then
+                _running2 "Skip (non-UUID prefix '$PREFIX'): $FILENAME"
+            fi
+        fi
+    done
+
     LOG_FILE_COUNT=${#LOG_FILES[@]}
     if [ $LOG_FILE_COUNT -eq 0 ]; then
-        _warning "No log files found in $ACTIVE_DIR"
-        exit 0
+        _warning "No rotated log files (pattern *.log-*) found in $ACTIVE_DIR; skipping rename step"
+        return 0
     fi
     
-    _running "Processing $LOG_FILE_COUNT log files"
+    _running "Processing $LOG_FILE_COUNT log files (from $ALL_COUNT candidates; skipped non-UUID: $SKIPPED_NON_UUID, gz: $SKIPPED_GZ)"
     _log_action "Processing $LOG_FILE_COUNT log files"
     for FILE in "${LOG_FILES[@]}"; do
         # Example file name /var/log/webserver_logs/ff5a1958-0e43-4584-8de8-466a24542582.log-20250421
@@ -292,21 +324,36 @@ _rename_log_files() {
         UUID=${FILENAME%%.log-*}
         DATE_PART=${FILENAME##*.log-}
 
+        if [[ $SHOW_DETAILS -eq 1 ]]; then
+            _running2 "Parse: file=$FILENAME uuid=$UUID date=$DATE_PART"
+        fi
+
         # -- Get the domain from enhance-cli
         _running2 "Getting domain for UUID: $UUID"
         DOMAIN=$(_enhance_uuid_to_domain "$UUID")
         if [[ $? -ne 0 ]]; then
             _warning "enhance_uuid_to_domain failed for UUID:$UUID with error: $DOMAIN"
+            if [[ $SHOW_DETAILS -eq 1 ]]; then
+                _running2 "Mapping source: (none)"
+            fi
             continue
         fi
 
         if [[ -z "$DOMAIN" ]]; then
             DOMAIN="$UUID-broken"
         fi
+        if [[ $SHOW_DETAILS -eq 1 ]]; then
+            SRC_FILE="${UUID_TO_SITEFILE[$UUID]}"
+            _running2 "Mapping: uuid=$UUID -> domain=$DOMAIN (source=${SRC_FILE:-unknown})"
+        fi
         
         # -- Construct new filename with domain instead of UUID
         NEW_FILENAME="${DOMAIN}.log-${DATE_PART}"
         NEW_FILE_PATH="$TARGET_DIR/$NEW_FILENAME"
+        if [[ $SHOW_DETAILS -eq 1 ]]; then
+            ACTION=$([[ $USE_ARCHIVE == 1 ]] && echo move || echo rename)
+            _running2 "Plan: $ACTION $FILE -> $NEW_FILE_PATH"
+        fi
         
         # -- Handle duplicate filenames
         if [ -e "$NEW_FILE_PATH" ]; then
@@ -359,6 +406,10 @@ while [[ $# -gt 0 ]]; do
             ;;
         -a|--archive)
             USE_ARCHIVE=1
+            shift
+            ;;
+        -s|--show)
+            SHOW_DETAILS=1
             shift
             ;;
         -d|--debug)
