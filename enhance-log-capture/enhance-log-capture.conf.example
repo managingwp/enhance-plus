@@ -11,3 +11,7 @@ ARCHIVE_DIR="/var/log/webserver_logs_archive"
 # Enable or disable logging of rename operations (default: 1 = enabled, 0 = disabled)
 # Logs are written to $ACTIVE_DIR/rename.run
 LOG_RENAME=1
+
+# Enable or disable symlink creation from domain names to UUID log files (default: 0 = disabled, 1 = enabled)
+# When enabled, creates symlinks like domain.com.log -> UUID.log for easier log file discovery
+SYMLINK_ENABLE=0

@@ -9,6 +9,7 @@ DEBUG=0
 DRY_RUN=0
 USE_ARCHIVE=0
 LOG_RENAME=1
+SYMLINK_ENABLE=0
 ACTIVE_DIR="/var/log/webserver_logs"
 ARCHIVE_DIR="/var/log/webserver_logs_archive"
 declare -A UUID_TO_DOMAIN
@@ -124,6 +125,120 @@ _enhance_uuid_to_domain() {
     fi
     echo "$DOMAIN"
     return 0
+}
+
+# =====================================
+# -- Create symlinks from domain names to UUID log files
+# =====================================
+_create_symlinks() {
+    # Check if symlink feature is enabled
+    if [[ $SYMLINK_ENABLE -eq 0 ]]; then
+        _debug "Debug: Symlink creation is disabled (SYMLINK_ENABLE=0)"
+        return 0
+    fi
+
+    _running "Creating symlinks from domain names to UUID log files"
+    _log_action "Starting symlink creation process"
+
+    # Get enhance UUID to domain mapping if not already loaded
+    if [[ ${#UUID_TO_DOMAIN[@]} -eq 0 ]]; then
+        _enhance_uuid_to_domain_db
+        [[ $? -ne 0 ]] && _error "Failed to get enhance UUID to domain mapping" && return 1
+    fi
+
+    # Get all UUID.log files in the active directory (not the rotated ones with dates)
+    # Pattern: UUID.log (not UUID.log-20250421)
+    UUID_LOG_FILES=($(\ls "$ACTIVE_DIR"/*.log 2>/dev/null | grep -E '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.log$'))
+    UUID_LOG_COUNT=${#UUID_LOG_FILES[@]}
+
+    if [[ $UUID_LOG_COUNT -eq 0 ]]; then
+        _warning "No UUID log files found in $ACTIVE_DIR"
+        _log_action "No UUID log files found for symlink creation"
+        return 0
+    fi
+
+    _running2 "Found $UUID_LOG_COUNT UUID log files to process"
+    _log_action "Found $UUID_LOG_COUNT UUID log files to process"
+
+    local symlinks_created=0
+    local symlinks_skipped=0
+    local symlinks_failed=0
+
+    for FILE in "${UUID_LOG_FILES[@]}"; do
+        FILENAME=$(basename "$FILE")
+        # Extract UUID from filename (remove .log extension)
+        UUID=${FILENAME%.log}
+
+        _debug "Debug: Processing file $FILENAME with UUID $UUID"
+
+        # Get the domain from UUID mapping
+        DOMAIN=$(_enhance_uuid_to_domain "$UUID")
+        if [[ $? -ne 0 ]] || [[ -z "$DOMAIN" ]]; then
+            _warning "No domain found for UUID: $UUID, skipping symlink creation"
+            _log_action "No domain found for UUID: $UUID, skipping symlink creation"
+            ((symlinks_failed++))
+            continue
+        fi
+
+        # Construct symlink name
+        SYMLINK_NAME="${DOMAIN}.log"
+        SYMLINK_PATH="${ACTIVE_DIR}/${SYMLINK_NAME}"
+
+        # Check if symlink already exists
+        if [[ -L "$SYMLINK_PATH" ]]; then
+            # Symlink exists, check if it points to the correct target
+            CURRENT_TARGET=$(readlink "$SYMLINK_PATH")
+            if [[ "$CURRENT_TARGET" == "$FILENAME" ]] || [[ "$CURRENT_TARGET" == "$FILE" ]]; then
+                _debug "Debug: Symlink $SYMLINK_NAME already exists and points to correct target, skipping"
+                _log_action "Symlink $SYMLINK_NAME already exists and is correct"
+                ((symlinks_skipped++))
+                continue
+            else
+                _warning "Symlink $SYMLINK_NAME exists but points to wrong target: $CURRENT_TARGET"
+                if [[ $DRY_RUN == 1 ]]; then
+                    _running2 "Would update symlink $SYMLINK_PATH -> $FILENAME"
+                else
+                    # Remove old symlink and create new one
+                    rm -f "$SYMLINK_PATH"
+                    ln -s "$FILENAME" "$SYMLINK_PATH"
+                    if [[ $? -eq 0 ]]; then
+                        _success "Updated symlink $SYMLINK_PATH -> $FILENAME"
+                        _log_action "Updated symlink $SYMLINK_PATH -> $FILENAME"
+                        ((symlinks_created++))
+                    else
+                        _error "Failed to update symlink $SYMLINK_PATH"
+                        _log_action "Failed to update symlink $SYMLINK_PATH"
+                        ((symlinks_failed++))
+                    fi
+                fi
+            fi
+        elif [[ -e "$SYMLINK_PATH" ]]; then
+            # A regular file exists with this name
+            _warning "File $SYMLINK_PATH already exists and is not a symlink, skipping"
+            _log_action "File $SYMLINK_PATH already exists and is not a symlink, skipping"
+            ((symlinks_failed++))
+        else
+            # Symlink doesn't exist, create it
+            if [[ $DRY_RUN == 1 ]]; then
+                _running2 "Would create symlink $SYMLINK_PATH -> $FILENAME"
+            else
+                ln -s "$FILENAME" "$SYMLINK_PATH"
+                if [[ $? -eq 0 ]]; then
+                    _success "Created symlink $SYMLINK_PATH -> $FILENAME"
+                    _log_action "Created symlink $SYMLINK_PATH -> $FILENAME"
+                    ((symlinks_created++))
+                else
+                    _error "Failed to create symlink $SYMLINK_PATH"
+                    _log_action "Failed to create symlink $SYMLINK_PATH"
+                    ((symlinks_failed++))
+                fi
+            fi
+        fi
+    done
+
+    # Log summary
+    _running2 "Symlink summary: Created/Updated: $symlinks_created, Skipped: $symlinks_skipped, Failed: $symlinks_failed"
+    _log_action "Symlink summary: Created/Updated: $symlinks_created, Skipped: $symlinks_skipped, Failed: $symlinks_failed"
 }
 
 
@@ -269,10 +384,12 @@ _log_action "Script started - Mode: ${MODE}, Archive: ${USE_ARCHIVE}"
 
 # Execute based on mode
 if [[ "$MODE" == "rename" ]]; then
-    _rename_log_files    
+    _rename_log_files
+    _create_symlinks
 elif [[ "$MODE" == "dryrun" ]]; then
     DRY_RUN=1
-    _rename_log_files    
+    _rename_log_files
+    _create_symlinks
 else
     _error "Invalid mode: $MODE"
     _usage
