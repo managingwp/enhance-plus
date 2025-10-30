@@ -8,6 +8,7 @@ MODE=""
 DEBUG=0
 DRY_RUN=0
 USE_ARCHIVE=0
+LOG_RENAME=1
 ACTIVE_DIR="/var/log/webserver_logs"
 ARCHIVE_DIR="/var/log/webserver_logs_archive"
 declare -A UUID_TO_DOMAIN
@@ -34,6 +35,15 @@ _error () { echo -e "\e[1;31m${*}\e[0m"; }
 _debug () {
     if [[ $DEBUG -eq 1 ]]; then
         echo -e "\e[1;35mDEBUG: ${*}\e[0m" >&2
+    fi
+}
+_log_action() {
+    # Log actions to rename.run file if LOG_RENAME is enabled
+    if [[ $LOG_RENAME -eq 1 ]]; then
+        local timestamp
+        timestamp=$(date '+%m/%d/%Y %H:%M:%S %Z')
+        local log_file="${ACTIVE_DIR}/rename.run"
+        echo "[${timestamp}] ${*}" >> "$log_file"
     fi
 }
 _usage() {
@@ -132,6 +142,7 @@ _rename_log_files() {
         if [ ! -d "$TARGET_DIR" ]; then
             _running2 "Creating archive directory: $TARGET_DIR"
             mkdir -p "$TARGET_DIR"
+            _log_action "Created archive directory: $TARGET_DIR"
         fi
     else
         TARGET_DIR="$ACTIVE_DIR"
@@ -152,6 +163,7 @@ _rename_log_files() {
     fi
     
     _running "Processing $LOG_FILE_COUNT log files"
+    _log_action "Processing $LOG_FILE_COUNT log files"
     for FILE in "${LOG_FILES[@]}"; do
         # Example file name /var/log/webserver_logs/ff5a1958-0e43-4584-8de8-466a24542582.log-20250421
         FILENAME=$(basename "$FILE")
@@ -198,9 +210,11 @@ _rename_log_files() {
             mv "$FILE" "$NEW_FILE_PATH"
             if [ $? -ne 0 ]; then
                 _error "Failed to rename $FILE to $NEW_FILE_PATH"
+                _log_action "Failed to rename $FILE to $NEW_FILE_PATH"
                 continue
             fi
             _success "Renamed $FILE to $NEW_FILE_PATH"
+            _log_action "Renamed $FILE to $NEW_FILE_PATH"
         fi
     done
 }
@@ -250,6 +264,9 @@ fi
 # Run pre-flight checks
 _pre_flight
 
+# Log script start
+_log_action "Script started - Mode: ${MODE}, Archive: ${USE_ARCHIVE}"
+
 # Execute based on mode
 if [[ "$MODE" == "rename" ]]; then
     _rename_log_files    
@@ -260,3 +277,6 @@ else
     _error "Invalid mode: $MODE"
     _usage
 fi
+
+# Log script end
+_log_action "Script completed - Mode: ${MODE}"
