@@ -12,6 +12,17 @@ ACTIVE_DIR="/var/log/webserver_logs"
 ARCHIVE_DIR="/var/log/webserver_logs_archive"
 declare -A UUID_TO_DOMAIN
 
+# =============================================================================
+# -- Load Configuration
+# =============================================================================
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+CONFIG_FILE="${SCRIPT_DIR}/enhance-log-capture.conf"
+
+if [[ -f "$CONFIG_FILE" ]]; then
+    # Source the configuration file to override default values
+    source "$CONFIG_FILE"
+fi
+
 # ==============================================================================
 # -- Functions
 # ==============================================================================
