@@ -56,21 +56,24 @@ _log_action() {
     fi
 }
 _usage() {
-    echo "Usage: $0 <rename|dryrun> [-a] [-s] [-d]"
+    echo "Usage: $0 <rename|dryrun|symlinks> [-a] [-l] [-s] [-d]"
     echo
     echo "Commands:"
-    echo "  rename   Rename and archive log files based on UUID to domain mapping"
-    echo "  dryrun   Show what would be done without making any changes"
+    echo "  rename     Rename and/or move rotated UUID.log-YYYYMMDD files"
+    echo "  dryrun     Show what would be done without making any changes"
+    echo "  symlinks   Create domain.log -> UUID.log symlinks only (no rename)"
     echo
     echo "Options:"
     echo "  -a       Move files to archive directory (default: rename in current directory)"
+    echo "  -l       Enable symlink creation (domain.log -> UUID.log)"
     echo "  -s       Show per-file parsing details (source, UUID, domain, date, destination)"
     echo "  -d       Debug mode (verbose internal logs)"
     echo
     echo "Examples:"
-    echo "  $0 rename        # Rename files in current directory"
-    echo "  $0 rename -a     # Rename and move files to archive directory"
-    echo "  $0 dryrun -a     # Show what would be done with archive option"
+    echo "  $0 rename            # Rename rotated files in-place"
+    echo "  $0 rename -a         # Rename and move rotated files to archive"
+    echo "  $0 symlinks          # Create domain symlinks for live UUID.log files"
+    echo "  $0 dryrun -l -s      # Dryrun with symlinks and per-file details"
     exit 1
 }
 # =====================================
@@ -144,7 +147,7 @@ _enhance_uuid_to_domain() {
 _create_symlinks() {
     # Check if symlink feature is enabled
     if [[ $SYMLINK_ENABLE -eq 0 ]]; then
-        _debug "Debug: Symlink creation is disabled (SYMLINK_ENABLE=0)"
+        _running2 "Symlink creation is disabled (SYMLINK_ENABLE=0). Use -l to enable or set SYMLINK_ENABLE=1 in config."
         return 0
     fi
 
@@ -395,7 +398,7 @@ _rename_log_files() {
 # Parse arguments
 while [[ $# -gt 0 ]]; do
     case $1 in
-        rename|dryrun)
+        rename|dryrun|symlinks)
             if [[ -z "$MODE" ]]; then
                 MODE="$1"
             else
@@ -406,6 +409,10 @@ while [[ $# -gt 0 ]]; do
             ;;
         -a|--archive)
             USE_ARCHIVE=1
+            shift
+            ;;
+        -l|--symlinks)
+            SYMLINK_ENABLE=1
             shift
             ;;
         -s|--show)
@@ -446,6 +453,10 @@ if [[ "$MODE" == "rename" ]]; then
 elif [[ "$MODE" == "dryrun" ]]; then
     DRY_RUN=1
     _rename_log_files
+    _create_symlinks
+elif [[ "$MODE" == "symlinks" ]]; then
+    # Force-enable symlinks for this mode
+    SYMLINK_ENABLE=1
     _create_symlinks
 else
     _error "Invalid mode: $MODE"
