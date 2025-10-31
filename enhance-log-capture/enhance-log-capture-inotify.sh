@@ -6,6 +6,8 @@ WATCH_DIR="${WATCH_DIR:-/var/local/enhance/webserver_logs/}"
 ARCHIVE_DIR="${ARCHIVE_DIR:-/var/log/webserver_logs}"
 # If set to 1, include date in destination file name
 ADD_DATE="${ADD_DATE:-0}"
+# Preserve full line boundaries when appending (buffer incomplete trailing line)
+PRESERVE_LINE_BOUNDARIES="${PRESERVE_LINE_BOUNDARIES:-1}"
 
 # De-dup window in seconds for adjacent identical lines
 DEDUP_WINDOW_SEC="${DEDUP_WINDOW_SEC:-1}"
@@ -32,7 +34,7 @@ _dedup_awk() {
 _append_delta_with_dedup() {
     local SRC="$1"
     local DEST="$2"
-    local key ofile prev size delta size2
+    local key ofile prev size delta size2 chunk combined out carry_file last_char
 
     [[ ! -f "$SRC" ]] && return 0
 
@@ -67,9 +69,51 @@ _append_delta_with_dedup() {
     # Ensure DEST directory exists
     mkdir -p "$(dirname "$DEST")"
 
-    # Read only new bytes and filter adjacent duplicates in-window
-    dd if="$SRC" bs=1 skip="$prev" count="$delta" status=none \
-        | _dedup_awk >> "$DEST"
+    # Fast-path: if line-boundary preservation is disabled, emit raw delta
+    if [[ "$PRESERVE_LINE_BOUNDARIES" != "1" ]]; then
+        dd if="$SRC" bs=1 skip="$prev" count="$delta" status=none \
+            | _dedup_awk >> "$DEST"
+        echo "$size" > "$ofile" 2>/dev/null
+        return 0
+    fi
+
+    # Prepare state files
+    chunk="$STATE_DIR/${key}.chunk"
+    combined="$STATE_DIR/${key}.combined"
+    out="$STATE_DIR/${key}.out"
+    carry_file="$STATE_DIR/${key}.carry"
+
+    # Read only new bytes to chunk
+    dd if="$SRC" bs=1 skip="$prev" count="$delta" status=none > "$chunk"
+
+    # Prepend any prior carry (incomplete last line from previous read)
+    if [[ -s "$carry_file" ]]; then
+        cat "$carry_file" "$chunk" > "$combined"
+    else
+        cp "$chunk" "$combined"
+    fi
+
+    # Determine if combined ends with a newline; if not, save trailing partial line
+    if [[ -s "$combined" ]]; then
+        last_char=$(tail -c 1 "$combined" 2>/dev/null || echo "")
+        if [[ "$last_char" == $'\n' ]]; then
+            # Entire content is complete lines
+            : > "$carry_file"
+            cp "$combined" "$out"
+        else
+            # Save incomplete last line to carry and output all but last line
+            tail -n 1 "$combined" > "$carry_file" 2>/dev/null || :
+            # Remove last line safely; sed '$d' deletes the last line even if no trailing newline
+            sed '$d' "$combined" > "$out"
+        fi
+    else
+        : > "$out"
+    fi
+
+    # Append complete lines through de-dup filter
+    if [[ -s "$out" ]]; then
+        _dedup_awk < "$out" >> "$DEST"
+    fi
 
     echo "$size" > "$ofile" 2>/dev/null
 }

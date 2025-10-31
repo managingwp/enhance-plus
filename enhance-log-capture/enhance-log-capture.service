@@ -3,6 +3,7 @@ Description=Enhance Log Archiver
 After=network.target
 
 [Service]
+EnvironmentFile=-/etc/default/enhance-log-capture
 ExecStart=SERVICE_SCRIPT_PATH_PLACEHOLDER/enhance-log-capture-inotify.sh
 Restart=always
 User=root

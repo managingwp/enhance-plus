@@ -212,6 +212,42 @@ _install_logrotate() {
 }
 
 # =======================================
+# -- Install /etc/default config for service
+# =======================================
+_install_env_defaults() {
+    local ENV_FILE="/etc/default/enhance-log-capture"
+    if [[ -f "$ENV_FILE" && "$FORCE" != "1" ]]; then
+        _running2 "Environment file exists at $ENV_FILE (use -f to overwrite)"
+        return 0
+    fi
+    _running2 "Installing environment defaults to $ENV_FILE"
+    cat > "$ENV_FILE" <<'EOF'
+# enhance-log-capture environment configuration
+# Uncomment and adjust values as needed. Defaults are shown.
+
+# Directory with active app logs to watch
+WATCH_DIR=/var/local/enhance/webserver_logs/
+
+# Destination directory for archived/aggregated logs
+ARCHIVE_DIR=/var/log/webserver_logs
+
+# If set to 1, include date in destination filename (UUID_YYYYMMDD.log)
+ADD_DATE=0
+
+# Adjacent duplicate suppression window (seconds); set 0 to disable
+DEDUP_WINDOW_SEC=1
+
+# Offset state and buffer directories
+OFFSETS_DIR=/var/run/enhance-log-capture
+STATE_DIR=/dev/shm/enhance-log-capture
+
+# Preserve line boundaries when appending (recommended)
+# 1 = buffer and only emit complete lines; 0 = append raw deltas
+PRESERVE_LINE_BOUNDARIES=1
+EOF
+}
+
+# =======================================
 # -- Uninstall Logrotate
 # =======================================
 _uninstall_logrotate() {
@@ -302,6 +338,9 @@ if [[ $CMD == "install" ]]; then
     
     # -- Logrotate configuration
     _install_logrotate_with_checks
+
+    # -- Environment config for service
+    _install_env_defaults
 
     # -- Always restart service on install to pick up latest scripts/config
     _running "Restarting service $SYSTEMD_SERVICE_NAME (always on install)"
