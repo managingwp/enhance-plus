@@ -1,7 +1,7 @@
 # =====================================
-# -- Check rotation.run and Rotate
+# -- Rotate rename.run log (script action log)
 # =====================================
-/var/log/webserver_logs/rotation.run {
+/var/log/webserver_logs/rename.run {
     size 100M
     rotate 5
     compress
@@ -30,15 +30,7 @@
     sharedscripts
     postrotate
         LOGROTATE_SCRIPT_PATH_PLACEHOLDER/enhance-log-capture-rename.sh rename
-        echo "== Starting log rotation $(date '+%F %T') ==" >> /var/log/webserver_logs/rotation.run
-        # Compress any uncompressed domain-based log files
-        find /var/log/webserver_logs/ /var/log/webserver_logs_archive/ -name "*.log-[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]" -type f ! -name "*.gz" 2>/dev/null | while read -r logfile; do
-            if [ -f "$logfile" ]; then
-                echo "  - Found log not compressed $logfile, compressing" >> /var/log/webserver_logs/rotation.run
-                gzip "$logfile"
-            fi
-        done
-        echo "== End log rotation $(date '+%F %T') ==" >> /var/log/webserver_logs/rotation.run
+        LOGROTATE_SCRIPT_PATH_PLACEHOLDER/enhance-log-capture-rename.sh compress
     endscript
 }
 

@@ -1,9 +1,6 @@
 # Tasks
 
-## 4. Move compress code from .logrotate to enhance-log-capture-rename.sh
-Currently the .logrotate file has some code, I want to keep the LOGROTATE_SCRIPT_PATH_PLACEHOLDER/enhance-log-capture-rename.sh rename command.
 
-However, the remaining code I'd like to put into a enhance-log-capture-rename.sh as compress and add the appropriate functionality to run during dryrun as -c and also log to rename.run and remove rotation.run
 
 ## 5. Create all Command
 I would then like to create a new command called all, that will do the symlink, rename and compress all in one shot.
@@ -17,6 +14,9 @@ Sicne archive logged that are compressed can live in both /var/log/webserver_log
 Confirm if this doesn't already exist, if it does then do nothing.
 
 If the archive dir is configured, make sure to check if it exists during install and create it if not and also move existing compressed logs to the new location if they exist as the configuration might be enabled after initial install.
+
+## 8. Document each configuration option in README.md
+Ensure that all configuration options are documented in the README.md file for enhance-log-capture, including their purpose, default values, and how to modify them.
 
 # Completed
 ## 1. ✅ When running an install, if files already exist check if they are the same, and if so skip overwrite them.
@@ -58,3 +58,15 @@ Changes (enhance-log-capture-inotify.sh):
 - Run complete lines through the adjacent de-dup filter before appending to destination.
 
 Result: lines in the destination log are intact and appear in the correct write order without mid-line breaks, improving human readability.
+
+## 4. ✅ Move compress code from .logrotate to enhance-log-capture-rename.sh
+Implemented a dedicated compress phase in the rename tool and simplified logrotate.
+
+What changed:
+- enhance-log-capture-rename.sh: added `compress` subcommand and `-c/--compress` to include compression in `rename`/`dryrun`.
+- Compression scans both active and archive dirs for uncompressed `*.log-YYYYMMDD` and gzips them; logs actions to `rename.run`.
+- logrotate: removed `rotation.run` usage and inline `find|gzip` block; postrotate now calls:
+  - `.../enhance-log-capture-rename.sh rename`
+  - `.../enhance-log-capture-rename.sh compress`
+
+Result: one place controls compression behavior with clearer dryrun output, and rotation.run is no longer used.

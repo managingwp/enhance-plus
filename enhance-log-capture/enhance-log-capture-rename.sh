@@ -16,6 +16,7 @@ ARCHIVE_DIR="/var/log/webserver_logs_archive"
 declare -A UUID_TO_DOMAIN
 declare -A UUID_TO_SITEFILE
 SHOW_DETAILS=0
+COMPRESS=0
 
 # =============================================================================
 # -- Load Configuration
@@ -56,16 +57,18 @@ _log_action() {
     fi
 }
 _usage() {
-    echo "Usage: $0 <rename|dryrun|symlinks> [-a] [-l] [-s] [-d]"
+    echo "Usage: $0 <rename|dryrun|symlinks|compress> [-a] [-l] [-c] [-s] [-d]"
     echo
     echo "Commands:"
     echo "  rename     Rename and/or move rotated UUID.log-YYYYMMDD files"
     echo "  dryrun     Show what would be done without making any changes"
     echo "  symlinks   Create domain.log -> UUID.log symlinks only (no rename)"
+    echo "  compress   Compress any uncompressed *.log-YYYYMMDD files in active/archive"
     echo
     echo "Options:"
     echo "  -a       Move files to archive directory (default: rename in current directory)"
     echo "  -l       Enable symlink creation (domain.log -> UUID.log)"
+    echo "  -c       Include compression phase in dryrun/rename"
     echo "  -s       Show per-file parsing details (source, UUID, domain, date, destination)"
     echo "  -d       Debug mode (verbose internal logs)"
     echo
@@ -73,7 +76,8 @@ _usage() {
     echo "  $0 rename            # Rename rotated files in-place"
     echo "  $0 rename -a         # Rename and move rotated files to archive"
     echo "  $0 symlinks          # Create domain symlinks for live UUID.log files"
-    echo "  $0 dryrun -l -s      # Dryrun with symlinks and per-file details"
+    echo "  $0 compress          # Compress uncompressed rotated logs (*.log-YYYYMMDD)"
+    echo "  $0 dryrun -l -c -s   # Dryrun with symlinks + compress and per-file details"
     exit 1
 }
 # =====================================
@@ -255,6 +259,55 @@ _create_symlinks() {
     _log_action "Symlink summary: Created/Updated: $symlinks_created, Skipped: $symlinks_skipped, Failed: $symlinks_failed"
 }
 
+# =====================================
+# -- Compress uncompressed rotated logs (*.log-YYYYMMDD)
+# =====================================
+_compress_logs() {
+    local targets target_count=0 compressed=0 failed=0 skipped=0 base dirs=("$ACTIVE_DIR" "$ARCHIVE_DIR")
+    _running "Compressing uncompressed rotated logs (*.log-YYYYMMDD)"
+    _log_action "Starting compress phase"
+
+    # Build candidate list
+    targets=()
+    for d in "${dirs[@]}"; do
+        [[ -d "$d" ]] || continue
+        while IFS= read -r -d '' f; do
+            targets+=("$f")
+        done < <(find "$d" -maxdepth 2 -type f -regextype posix-extended \
+                 -regex ".*\\.log-[0-9]{8}$" ! -name "*.gz" -print0 2>/dev/null)
+    done
+
+    target_count=${#targets[@]}
+    if [[ $target_count -eq 0 ]]; then
+        _running2 "No uncompressed rotated logs found in ${dirs[*]}"
+        _log_action "Compress phase: nothing to do"
+        return 0
+    fi
+
+    _running2 "Found $target_count files to compress"
+    for logfile in "${targets[@]}"; do
+        base=$(basename "$logfile")
+        if [[ $DRY_RUN -eq 1 ]]; then
+            _running2 "Would compress $logfile"
+            _log_action "Would compress $logfile"
+            ((skipped++))
+            continue
+        fi
+        if gzip -f "$logfile"; then
+            _success "Compressed $logfile"
+            _log_action "Compressed $logfile"
+            ((compressed++))
+        else
+            _error "Failed to compress $logfile"
+            _log_action "Failed to compress $logfile"
+            ((failed++))
+        fi
+    done
+
+    _running2 "Compress summary: Compressed: $compressed, Skipped (dryrun): $skipped, Failed: $failed"
+    _log_action "Compress summary: Compressed: $compressed, Skipped (dryrun): $skipped, Failed: $failed"
+}
+
 
 # =====================================
 # -- Rename log files
@@ -398,7 +451,7 @@ _rename_log_files() {
 # Parse arguments
 while [[ $# -gt 0 ]]; do
     case $1 in
-        rename|dryrun|symlinks)
+        rename|dryrun|symlinks|compress)
             if [[ -z "$MODE" ]]; then
                 MODE="$1"
             else
@@ -413,6 +466,10 @@ while [[ $# -gt 0 ]]; do
             ;;
         -l|--symlinks)
             SYMLINK_ENABLE=1
+            shift
+            ;;
+        -c|--compress)
+            COMPRESS=1
             shift
             ;;
         -s|--show)
@@ -450,14 +507,18 @@ _log_action "Script started - Mode: ${MODE}, Archive: ${USE_ARCHIVE}"
 if [[ "$MODE" == "rename" ]]; then
     _rename_log_files
     _create_symlinks
+    if [[ $COMPRESS -eq 1 ]]; then _compress_logs; fi
 elif [[ "$MODE" == "dryrun" ]]; then
     DRY_RUN=1
     _rename_log_files
     _create_symlinks
+    if [[ $COMPRESS -eq 1 ]]; then _compress_logs; fi
 elif [[ "$MODE" == "symlinks" ]]; then
     # Force-enable symlinks for this mode
     SYMLINK_ENABLE=1
     _create_symlinks
+elif [[ "$MODE" == "compress" ]]; then
+    _compress_logs
 else
     _error "Invalid mode: $MODE"
     _usage
