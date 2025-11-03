@@ -57,7 +57,7 @@ Commands:
   archive    Move compressed logs (*.gz) from active to archive
 
 Options (only for 'dryrun'):
-  -a, --archive    Plan to move files to ARCHIVE_DIR
+  -a, --archive    Plan to use ARCHIVE_DIR for renames and move compressed logs (*.gz) to archive
   -l, --symlinks   Plan to also create domain symlinks
   -c, --compress   Plan to run compression after rename
   -s, --show       Show per-file mapping/plan details
@@ -240,6 +240,7 @@ case "$MODE" in
     _rename_log_files
     _create_symlinks
     [[ $COMPRESS -eq 1 ]] && _compress_logs
+    [[ $USE_ARCHIVE -eq 1 ]] && _archive_logs
     ;;
   symlinks)
     SYMLINK_ENABLE=1; _create_symlinks
