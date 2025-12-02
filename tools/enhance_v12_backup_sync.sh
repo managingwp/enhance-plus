@@ -175,7 +175,17 @@ EOF
 #                             RSYNC COMMON OPTIONS                             #
 ################################################################################
 
-COMMON_RSYNC_OPTS="-aH --delete --info=progress2 $DRY_RUN"
+# -a: archive mode (preserves permissions, timestamps, etc.)
+# -H: preserve hard links (important for backup snapshots that use deduplication)
+# --delete: remove files on destination that don't exist on source
+# --info=progress2: show overall progress
+# --ignore-missing-args: Ignore files that vanish during transfer
+# --no-inc-recursive: Build full file list before transfer (helps with hard link tracking)
+# Note: rsync exit code 24 means "some files vanished before they could be transferred" - this is normal
+COMMON_RSYNC_OPTS="-aH --delete --info=progress2 --ignore-missing-args --no-inc-recursive $DRY_RUN"
+
+# Set LC_ALL=C to avoid locale warnings on remote server
+export LC_ALL=C
 
 ################################################################################
 #                             MAIN LOGIC                                       #
